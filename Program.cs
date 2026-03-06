@@ -32,8 +32,8 @@ namespace UnifiedSecurityAnalyzer
                 Console.WriteLine("========================================");
                 Console.WriteLine("1. Run Process & File System Security Scan");
                 Console.WriteLine("2. Run Network Pcap Analyzer (Live Capture + Analysis)");
-                Console.WriteLine("3. Analyze Existing Pcap File");
-                Console.WriteLine("4. Run Both at Once (System Scan + Network Capture)");
+                Console.WriteLine("3. Run Process & File System Security Scan and Analyze Existing Pcap File");
+                Console.WriteLine("4. Run Both at Once (Live Network Capture + System Scan)");
                 Console.WriteLine("5. Exit");
                 Console.Write("\nSelect an option (1-5): ");
 
@@ -211,8 +211,26 @@ namespace UnifiedSecurityAnalyzer
                 Console.Write("\nSelect a file to analyze (1-{0}): ", files.Length);
                 if (int.TryParse(Console.ReadLine(), out int fileIndex) && fileIndex > 0 && fileIndex <= files.Length)
                 {
-                    Console.WriteLine($"\nAnalyzing: {Path.GetFileName(files[fileIndex - 1])}...\n");
-                    AnalysisService.Run(files[fileIndex - 1]);
+                    Console.WriteLine("\n>>> Running Full System Security Scan (Processes, Registry & Files)...");
+                    RunProcessAndFileScan(silent: true);
+
+                    Console.WriteLine($"\n>>> Analyzing PCAP: {Path.GetFileName(files[fileIndex - 1])}...\n");
+                    
+                    Console.WriteLine("\n" + new string('=', 60));
+                    Console.WriteLine("             COMBINED SECURITY ANALYSIS REPORT             ");
+                    Console.WriteLine(new string('=', 60));
+
+                    Console.WriteLine("\n--- 1. SYSTEM PROCESS & FILE SCAN RESULTS ---");
+                    _alertManager.PrintAllAlerts();
+                    if (_alertManager.GetAlerts().Count == 0)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("NO SYSTEM/FILE THREATS DETECTED.");
+                        Console.ResetColor();
+                    }
+
+                    Console.WriteLine("\n--- 2. NETWORK PCAP ANALYSIS RESULTS ---");
+                    AnalysisService.Run(files[fileIndex - 1], skipHeader: true);
                 }
                 else
                 {

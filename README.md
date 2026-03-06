@@ -84,10 +84,10 @@ When you launch the program, you are presented with the following interactive me
 2. **Run Network Pcap Analyzer (Live Capture + Analysis)**
    Automatically selects the optimal network interface, promiscuously captures 60 seconds of traffic, saves it to the `pcap/` folder, and then runs threat analysis.
 
-3. **Analyze Existing Pcap File**
-   Reads all files from the local `pcap/` directory and allows you to select one to parse for anomalies and indicators of compromise.
+3. **Run Process & File System Security Scan and Analyze Existing Pcap File**
+   Reads all files from the local `pcap/` directory and allows you to select one. It will perform a live system threat scan and then parse the selected `.pcap` offline to produce a combined report.
 
-4. **Run Both at Once (System Scan + Network Capture)**
+4. **Run Both at Once (Live Network Capture + System Scan)**
    Utilizes `.NET` task concurrency. Captures 60 seconds of network traffic in the background while simultaneously performing the local System Process & File Scan. It then waits for both to finish and outputs a single, consolidated report.
 
 5. **Exit**
