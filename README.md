@@ -104,7 +104,31 @@ Modify `config.json` to customize the detection scope for the HIDS engine:
 Network Analyzer DNS Whitelisting:
 - Local IP resolving (`192.168.1.1`), `8.8.8.8`, and `1.1.1.1` are inherently trusted internally when evaluating `NET-12` (DNS Spoofing).
 
-## 🛠️ Technology Stack
+## � Centralized Alerting & Integration (JSON)
+
+The application features an asynchronous HTTP dispatcher (`AlertDispatcher.cs`) that serializes detected threats into structured JSON payloads and pushes them to a centralized backend.
+
+By default, the agent pushes POST requests to: `http://localhost:8000/api/alerts`
+
+**The Unified `SecurityAlert` Model:**
+```json
+{
+  "Timestamp": "2026-03-07T02:30:00.0000000Z",
+  "RuleId": "NET-12",
+  "Category": "Network",
+  "Severity": "High",
+  "Status": "New",
+  "Details": {
+    "title": "DNS Response from Unknown Resolver",
+    "description": "Domain: malicious-c2-server.com",
+    "source_ip": "104.21.5.10",
+    "target_ip": "192.168.1.15"
+  }
+}
+```
+*Note: The `Details` dictionary maps dynamic key-value pairs depending on whether the Category is `Network` (source IPs), `File` (Target Paths), or `Process` (Registry Keys).*
+
+## �🛠️ Technology Stack
 - **Framework**: .NET 10 (Windows Console)
 - **Core Dependencies**: `SharpPcap`, `PacketDotNet`, `dnYara`, `Microsoft.Win32.Registry`, `System.Text.Json`, `yara64.exe` (CLI dependency).
 - **Architecture**: Modular heuristic detection engine combined with real-time network protocol parsers.
