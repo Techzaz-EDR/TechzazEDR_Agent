@@ -96,7 +96,7 @@ When you launch the program, you are presented with the following interactive me
 ## ⚙️ Configuration
 
 Modify `config.json` to customize the detection scope for the HIDS engine:
-- `OrganizationId`: The unique identifier for the tenant organization (default: `techzaz-llc`).
+- `OrganizationApiKey`: The unique API Key corresponding to your tenant organization's dashboard (default: `tz_live_...`).
 - `TrustedExecutionPaths`: Whitelisted directories for system binaries.
 - `UntrustedExecutionPaths`: High-risk zones targeted for deep monitoring.
 - `TrustedSystemProcesses`: List of legitimate system process names.
@@ -107,7 +107,9 @@ Network Analyzer DNS Whitelisting:
 
 ## Centralized Alerting & Integration (JSON)
 
-The application features an asynchronous HTTP dispatcher (`AlertDispatcher.cs`) that serializes detected threats into structured JSON payloads and pushes them to a centralized backend using a multi-tenant hierarchy.
+The application features an asynchronous HTTP dispatcher (`AlertDispatcher.cs`) that serializes detected threats into structured JSON payloads and pushes them to a centralized backend using a multi-tenant hierarchy securely. 
+
+Rather than sending the Organization ID directly, the Agent sends the specific `OrganizationApiKey` directly inside the `x-api-key` HTTP Header. The backend API handles resolving the company ID and implicitly routing/creating the agent records.
 
 By default, the agent pushes POST requests to: `http://localhost:8000/api/v1/alerts?agent_id={MACHINE_NAME}`
 
@@ -119,7 +121,6 @@ By default, the agent pushes POST requests to: `http://localhost:8000/api/v1/ale
   "Category": "Network",
   "Severity": "High",
   "Status": "New",
-  "organization_id": "techzaz-llc",
   "Details": {
     "title": "DNS Response from Unknown Resolver",
     "description": "Domain: malicious-c2-server.com",

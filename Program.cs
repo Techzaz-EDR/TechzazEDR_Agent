@@ -99,7 +99,7 @@ namespace UnifiedSecurityAnalyzer
         {
             // Initialize the dispatcher to send alerts to the backend
             var backendUrl = "http://localhost:8000"; // Can be moved to AppConfig if desired
-            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationId);
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey);
 
             _alertManager = new AlertManager("alerts.log", dispatcher);
             _alertManager.SilentMode = silent;

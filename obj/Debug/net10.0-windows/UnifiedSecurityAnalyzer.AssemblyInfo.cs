@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UnifiedSecurityAnalyzer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+81829a37dd189a7172bbe1042cea12d83b322de5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+629846611506fa77b62cdffc995438f63fa92673")]
 [assembly: System.Reflection.AssemblyProductAttribute("UnifiedSecurityAnalyzer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UnifiedSecurityAnalyzer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

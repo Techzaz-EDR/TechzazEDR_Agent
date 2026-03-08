@@ -11,14 +11,14 @@ namespace WinEDR_MVP.Engine
     {
         private readonly HttpClient _httpClient;
         private readonly string _backendUrl;
-        private readonly string _organizationId;
+        private readonly string _organizationApiKey;
         private readonly string _agentId;
 
-        public AlertDispatcher(string backendUrl, string organizationId)
+        public AlertDispatcher(string backendUrl, string organizationApiKey)
         {
             _httpClient = new HttpClient();
             _backendUrl = backendUrl.TrimEnd('/');
-            _organizationId = organizationId;
+            _organizationApiKey = organizationApiKey;
             // Use MachineName as the default AgentId
             _agentId = Environment.MachineName; 
         }
@@ -35,7 +35,6 @@ namespace WinEDR_MVP.Engine
                     Category = alert.Type.ToString(),
                     Severity = alert.Severity.ToString(),
                     Status = "New",
-                    organization_id = _organizationId,
                     Details = alert.Metadata // The frontend expects the custom payload in Details
                 };
 
@@ -44,8 +43,13 @@ namespace WinEDR_MVP.Engine
 
                 // Route to /api/v1/alerts?agent_id=...
                 string url = $"{_backendUrl}/api/v1/alerts?agent_id={_agentId}";
+                
+                // Initialize http request
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Add("x-api-key", _organizationApiKey);
+                request.Content = content;
 
-                var response = await _httpClient.PostAsync(url, content);
+                var response = await _httpClient.SendAsync(request);
 
                 if (!response.IsSuccessStatusCode)
                 {

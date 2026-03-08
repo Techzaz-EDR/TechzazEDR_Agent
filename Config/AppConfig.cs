@@ -6,7 +6,7 @@ namespace WinEDR_MVP.Config
 {
     public class AppConfig
     {
-        public string OrganizationId { get; set; } = "techzaz-llc"; // Default OrganizationId
+        public string OrganizationApiKey { get; set; } = "tz_live_8f92ma01nbx820z"; // Default API Key
         public List<string> TrustedSystemProcesses { get; set; } = new List<string>();
         public List<string> TrustedExecutionPaths { get; set; } = new List<string>();
         public List<string> UntrustedExecutionPaths { get; set; } = new List<string>();
