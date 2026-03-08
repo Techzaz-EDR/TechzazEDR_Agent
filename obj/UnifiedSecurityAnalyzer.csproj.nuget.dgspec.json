@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Desktop\\Demo\\UnifiedSecurityAnalyzer\\UnifiedSecurityAnalyzer.csproj": {}
+    "D:\\Documents\\GitHub\\TechzazEDR_Agent\\UnifiedSecurityAnalyzer.csproj": {}
   },
   "projects": {
-    "D:\\Desktop\\Demo\\UnifiedSecurityAnalyzer\\UnifiedSecurityAnalyzer.csproj": {
+    "D:\\Documents\\GitHub\\TechzazEDR_Agent\\UnifiedSecurityAnalyzer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Desktop\\Demo\\UnifiedSecurityAnalyzer\\UnifiedSecurityAnalyzer.csproj",
+        "projectUniqueName": "D:\\Documents\\GitHub\\TechzazEDR_Agent\\UnifiedSecurityAnalyzer.csproj",
         "projectName": "UnifiedSecurityAnalyzer",
-        "projectPath": "D:\\Desktop\\Demo\\UnifiedSecurityAnalyzer\\UnifiedSecurityAnalyzer.csproj",
+        "projectPath": "D:\\Documents\\GitHub\\TechzazEDR_Agent\\UnifiedSecurityAnalyzer.csproj",
         "packagesPath": "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\",
-        "outputPath": "D:\\Desktop\\Demo\\UnifiedSecurityAnalyzer\\obj\\",
+        "outputPath": "D:\\Documents\\GitHub\\TechzazEDR_Agent\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

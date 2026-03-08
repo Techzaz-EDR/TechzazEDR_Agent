@@ -96,6 +96,7 @@ When you launch the program, you are presented with the following interactive me
 ## ⚙️ Configuration
 
 Modify `config.json` to customize the detection scope for the HIDS engine:
+- `OrganizationId`: The unique identifier for the tenant organization (default: `techzaz-llc`).
 - `TrustedExecutionPaths`: Whitelisted directories for system binaries.
 - `UntrustedExecutionPaths`: High-risk zones targeted for deep monitoring.
 - `TrustedSystemProcesses`: List of legitimate system process names.
@@ -104,11 +105,11 @@ Modify `config.json` to customize the detection scope for the HIDS engine:
 Network Analyzer DNS Whitelisting:
 - Local IP resolving (`192.168.1.1`), `8.8.8.8`, and `1.1.1.1` are inherently trusted internally when evaluating `NET-12` (DNS Spoofing).
 
-## � Centralized Alerting & Integration (JSON)
+## Centralized Alerting & Integration (JSON)
 
-The application features an asynchronous HTTP dispatcher (`AlertDispatcher.cs`) that serializes detected threats into structured JSON payloads and pushes them to a centralized backend.
+The application features an asynchronous HTTP dispatcher (`AlertDispatcher.cs`) that serializes detected threats into structured JSON payloads and pushes them to a centralized backend using a multi-tenant hierarchy.
 
-By default, the agent pushes POST requests to: `http://localhost:8000/api/alerts`
+By default, the agent pushes POST requests to: `http://localhost:8000/api/v1/alerts?agent_id={MACHINE_NAME}`
 
 **The Unified `SecurityAlert` Model:**
 ```json
@@ -118,6 +119,7 @@ By default, the agent pushes POST requests to: `http://localhost:8000/api/alerts
   "Category": "Network",
   "Severity": "High",
   "Status": "New",
+  "organization_id": "techzaz-llc",
   "Details": {
     "title": "DNS Response from Unknown Resolver",
     "description": "Domain: malicious-c2-server.com",

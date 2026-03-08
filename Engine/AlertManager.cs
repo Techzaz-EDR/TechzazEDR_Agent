@@ -11,14 +11,16 @@ namespace WinEDR_MVP.Engine
         private readonly List<Alert> _alerts = new List<Alert>();
         private readonly string _logPath;
         private readonly object _lock = new object();
+        private readonly AlertDispatcher? _dispatcher;
 
         public bool SilentMode { get; set; } = false;
 
         public event Action<Alert>? OnAlert;
 
-        public AlertManager(string logPath = "alerts.log")
+        public AlertManager(string logPath = "alerts.log", AlertDispatcher? dispatcher = null)
         {
             _logPath = logPath;
+            _dispatcher = dispatcher;
         }
 
         public void AddAlert(Alert alert)
@@ -28,6 +30,12 @@ namespace WinEDR_MVP.Engine
                 _alerts.Add(alert);
                 LogAlert(alert);
                 OnAlert?.Invoke(alert);
+                
+                // Asynchronously dispatch the alert to the backend without blocking the main thread
+                if (_dispatcher != null)
+                {
+                    Task.Run(() => _dispatcher.DispatchAsync(alert));
+                }
                 
                 if (!SilentMode)
                 {

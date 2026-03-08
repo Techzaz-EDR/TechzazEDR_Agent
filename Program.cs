@@ -97,7 +97,11 @@ namespace UnifiedSecurityAnalyzer
 
         static void SetupEngine(bool silent)
         {
-            _alertManager = new AlertManager();
+            // Initialize the dispatcher to send alerts to the backend
+            var backendUrl = "http://localhost:8000"; // Can be moved to AppConfig if desired
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationId);
+
+            _alertManager = new AlertManager("alerts.log", dispatcher);
             _alertManager.SilentMode = silent;
             _engine = new DetectionEngine(_alertManager);
 

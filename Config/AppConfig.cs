@@ -6,6 +6,7 @@ namespace WinEDR_MVP.Config
 {
     public class AppConfig
     {
+        public string OrganizationId { get; set; } = "techzaz-llc"; // Default OrganizationId
         public List<string> TrustedSystemProcesses { get; set; } = new List<string>();
         public List<string> TrustedExecutionPaths { get; set; } = new List<string>();
         public List<string> UntrustedExecutionPaths { get; set; } = new List<string>();

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "sHqoFTxM0/A=",
+  "dgSpecHash": "9NmTPuR0W5Y=",
   "success": true,
-  "projectFilePath": "D:\\Desktop\\Demo\\UnifiedSecurityAnalyzer\\UnifiedSecurityAnalyzer.csproj",
+  "projectFilePath": "D:\\Documents\\GitHub\\TechzazEDR_Agent\\UnifiedSecurityAnalyzer.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\dnyara\\2.1.0\\dnyara.2.1.0.nupkg.sha512",
     "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\dnyara.interop\\2.1.0\\dnyara.interop.2.1.0.nupkg.sha512",
