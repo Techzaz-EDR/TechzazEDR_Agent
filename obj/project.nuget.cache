@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "9NmTPuR0W5Y=",
+  "success": true,
+  "projectFilePath": "D:\\Documents\\GitHub\\TechzazEDR_Agent\\UnifiedSecurityAnalyzer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\dnyara\\2.1.0\\dnyara.2.1.0.nupkg.sha512",
+    "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\dnyara.interop\\2.1.0\\dnyara.interop.2.1.0.nupkg.sha512",
+    "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\mono.posix.netstandard\\1.0.0\\mono.posix.netstandard.1.0.0.nupkg.sha512",
+    "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\netstandard.library\\1.6.1\\netstandard.library.1.6.1.nupkg.sha512",
+    "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\packetdotnet\\1.4.8\\packetdotnet.1.4.8.nupkg.sha512",
+    "C:\\Users\\Inuka Wijerathna\\.nuget\\packages\\sharppcap\\6.3.1\\sharppcap.6.3.1.nupkg.sha512"
+  ],
+  "logs": []
+}
