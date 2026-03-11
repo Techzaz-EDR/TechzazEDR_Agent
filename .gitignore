@@ -1,0 +1,16 @@
+## [Visual Studio]
+.vs/
+
+## [Build Artifacts]
+bin/
+obj/
+
+## [User-specific files]
+*.user
+*.userosscache
+*.sln.docstates
+
+## [Temporary files]
+*.tmp
+*.log
+pcap/*.pcap
