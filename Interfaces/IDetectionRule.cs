@@ -8,6 +8,7 @@ namespace WinEDR_MVP.Interfaces
         string RuleId { get; }
         string Name { get; }
         string Description { get; }
+        int ItemsChecked { get; }
         
         // Returns a list of detection events found during this evaluation cycle
         List<DetectionEvent> Evaluate();

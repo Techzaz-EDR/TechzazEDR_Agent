@@ -21,16 +21,25 @@ namespace WinEDR_MVP.Engine
             _rules.Add(rule);
         }
 
-        public void RunCycle()
+        public struct DetectionStats
         {
-            Console.WriteLine($"Running detection cycle at {DateTime.Now}...");
+            public int ItemsChecked;
+            public int AlertsFound;
+        }
+
+        public DetectionStats RunCycle()
+        {
+            DetectionStats stats = new DetectionStats();
             foreach (var rule in _rules)
             {
                 try
                 {
                     var events = rule.Evaluate();
+                    stats.ItemsChecked += rule.ItemsChecked;
+                    
                     if (events != null && events.Count > 0)
                     {
+                        stats.AlertsFound += events.Count;
                         foreach (var evt in events)
                         {
                             var alert = new Alert
@@ -52,6 +61,7 @@ namespace WinEDR_MVP.Engine
                     Console.WriteLine($"Error executing rule {rule.RuleId}: {ex.Message}");
                 }
             }
+            return stats;
         }
     }
 }

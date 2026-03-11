@@ -30,34 +30,36 @@ namespace UnifiedSecurityAnalyzer
                 Console.WriteLine("\n========================================");
                 Console.WriteLine("       UNIFIED SECURITY ANALYZER        ");
                 Console.WriteLine("========================================");
-                Console.WriteLine("1. Run Process & File System Security Scan");
-                Console.WriteLine("2. Run Network Pcap Analyzer (Live Capture + Analysis)");
-                Console.WriteLine("3. Run Process & File System Security Scan and Analyze Existing Pcap File");
-                Console.WriteLine("4. Run Both at Once (Live Network Capture + System Scan)");
-                Console.WriteLine("5. Exit");
-                Console.Write("\nSelect an option (1-5): ");
+                Console.WriteLine("1. Integrated Analysis (System Scan + PCAP File)");
+                Console.WriteLine("2. Live Security Analyzer (System Scan + Live Capture)");
+                Console.WriteLine("3. Exit");
+                Console.Write("\nSelect an option (1-3): ");
 
                 string? choice = Console.ReadLine();
 
                 if (choice == "1")
                 {
-                    RunProcessAndFileScan();
+                    await RunPcapAnalysis();
                 }
                 else if (choice == "2")
                 {
-                    RunPcapCaptureAndAnalysis();
+                    await RunBothAtOnce();
                 }
                 else if (choice == "3")
                 {
-                    RunPcapAnalysis();
-                }
-                else if (choice == "4")
-                {
-                    await RunBothAtOnce();
-                }
-                else if (choice == "5")
-                {
                     break;
+                }
+
+                // Show consolidated alert dispatch summary after ANY scan option that initialized the manager
+                if (_alertManager != null)
+                {
+                    var (success, failure) = await _alertManager.WaitForDispatchesAsync();
+                    if (success > 0 || failure > 0)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [✓] SYNC: Successfully dispatched {success} alerts to dashboard{(failure > 0 ? $" ({failure} failed)" : "")}.");
+                        Console.ResetColor();
+                    }
                 }
                 else
                 {
@@ -71,18 +73,23 @@ namespace UnifiedSecurityAnalyzer
 
         // --- Process & File Analyser Integration ---
 
-        static void RunProcessAndFileScan(bool silent = false)
+        static async Task RunProcessAndFileScan(bool silent = false)
         {
             SetupConfig();
             SetupEngine(silent);
             
-            if (!silent) 
-                Console.WriteLine("\n>>> Starting Full System Security Scan (Processes, Registry & Files)...");
+            string timestamp = DateTime.Now.ToString("HH:mm:ss");
+
+            if (!silent)
+            {
+                Console.WriteLine($"[{timestamp}] [*] INITIALIZING: Full System Security Scan...");
+                Console.WriteLine($"[{timestamp}] [i] CONFIG: Loaded {_config.ProcessPathExpectations.Count + _config.UntrustedExecutionPaths.Count} trusted/monitored paths, {Directory.GetFiles(_config.YaraRulesPath, "*.yar", SearchOption.AllDirectories).Length} YARA rules.");
+            }
             
-            _engine.RunCycle();
-            
+            var stats = _engine.RunCycle();
+
             if (!silent) 
-                Console.WriteLine("\n>>> Scan Complete.");
+                Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [✓] SCAN COMPLETE: {stats.ItemsChecked} items checked, {stats.AlertsFound} alerts found.");
         }
 
         static void SetupConfig()
@@ -180,8 +187,12 @@ namespace UnifiedSecurityAnalyzer
 
         // --- PCAP Analyzer Integration ---
 
-        static void RunPcapCaptureAndAnalysis()
+        static async Task RunPcapCaptureAndAnalysis()
         {
+            SetupConfig();
+            SetupEngine(silent: true);
+            _alertManager.SilentMode = true; 
+
             string pcapDir = GetPcapDir();
 
             string capturedFile = CaptureService.Run(pcapDir);
@@ -193,10 +204,10 @@ namespace UnifiedSecurityAnalyzer
             }
 
             Console.WriteLine("\nCapture Complete. Proceeding to Analysis...\n");
-            AnalysisService.Run(capturedFile);
+            AnalysisService.Run(capturedFile, _alertManager);
         }
 
-        static void RunPcapAnalysis()
+        static async Task RunPcapAnalysis()
         {
             string pcapDir = GetPcapDir();
             
@@ -211,10 +222,10 @@ namespace UnifiedSecurityAnalyzer
             // Automatically select the first existing pcap file
             string targetFile = files[0];
 
-            Console.WriteLine("\n>>> Running Full System Security Scan (Processes, Registry & Files)...");
-            RunProcessAndFileScan(silent: true);
+            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [*] INITIALIZING: Integrated System & PCAP Analysis...");
+            await RunProcessAndFileScan(silent: true);
 
-            Console.WriteLine($"\n>>> Analyzing PCAP: {Path.GetFileName(targetFile)}...\n");
+            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [i] NETWORK: Analyzing PCAP: {Path.GetFileName(targetFile)}...");
             
             Console.WriteLine("\n" + new string('=', 60));
             Console.WriteLine("             COMBINED SECURITY ANALYSIS REPORT             ");
@@ -230,7 +241,7 @@ namespace UnifiedSecurityAnalyzer
             }
 
             Console.WriteLine("\n--- 2. NETWORK PCAP ANALYSIS RESULTS ---");
-            AnalysisService.Run(targetFile, skipHeader: true);
+            AnalysisService.Run(targetFile, _alertManager, skipHeader: true);
         }
 
         static string GetPcapDir()
@@ -252,7 +263,7 @@ namespace UnifiedSecurityAnalyzer
 
         static async Task RunBothAtOnce()
         {
-            Console.WriteLine("\n>>> Initiating Simultaneous Network Capture and System Scan...");
+            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [*] INITIALIZING: Simultaneous Live Capture & System Scan...");
             
             string pcapDir = GetPcapDir();
             
@@ -260,9 +271,9 @@ namespace UnifiedSecurityAnalyzer
             Task<string> captureTask = Task.Run(() => CaptureService.Run(pcapDir));
 
             // Run system scan on the main thread while capture is ongoing, but keep it silent
-            RunProcessAndFileScan(silent: true);
+            await RunProcessAndFileScan(silent: true);
 
-            Console.WriteLine("\n>>> Waiting for Network Capture (60s total) to complete before analysis...");
+            Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [i] WAITING: Finalizing Network Capture (60s total)...");
             string capturedFile = await captureTask;
 
             if (string.IsNullOrEmpty(capturedFile) || !File.Exists(capturedFile))
@@ -285,7 +296,7 @@ namespace UnifiedSecurityAnalyzer
             }
 
             Console.WriteLine("\n--- 2. NETWORK PCAP ANALYSIS RESULTS ---");
-            AnalysisService.Run(capturedFile, skipHeader: true);
+            AnalysisService.Run(capturedFile, _alertManager, skipHeader: true);
         }
     }
 }
