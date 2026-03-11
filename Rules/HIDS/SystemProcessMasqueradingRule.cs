@@ -13,6 +13,7 @@ namespace WinEDR_MVP.Rules.HIDS
         public string RuleId => "HIDS-P1";
         public string Name => "System Process Masquerading";
         public string Description => "Detects system processes running outside legitimate paths.";
+        public int ItemsChecked { get; private set; }
 
         private readonly AppConfig _config;
 
@@ -25,6 +26,7 @@ namespace WinEDR_MVP.Rules.HIDS
         {
             var events = new List<DetectionEvent>();
             var processes = Process.GetProcesses();
+            ItemsChecked = processes.Length;
 
             foreach (var proc in processes)
             {

@@ -11,10 +11,12 @@ namespace WinEDR_MVP.Rules.HIDS
         public string RuleId => "HIDS-B1";
         public string Name => "Startup Persistence";
         public string Description => "Detects suspicious entries in Windows Startup Registry keys.";
+        public int ItemsChecked { get; private set; }
         
         public List<DetectionEvent> Evaluate()
         {
             var events = new List<DetectionEvent>();
+            ItemsChecked = 0;
             // Key locations
             string[] keys = {
                 @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
@@ -31,6 +33,7 @@ namespace WinEDR_MVP.Rules.HIDS
                         {
                             foreach (var valueName in key.GetValueNames())
                             {
+                                ItemsChecked++;
                                 string? value = key.GetValue(valueName)?.ToString();
                                 // MVP Heuristic: If it points to AppData or Temp, flag it.
                                 if (value != null && (value.Contains("AppData", StringComparison.OrdinalIgnoreCase) || 

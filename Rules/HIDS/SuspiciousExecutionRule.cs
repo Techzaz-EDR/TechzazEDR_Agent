@@ -13,6 +13,7 @@ namespace WinEDR_MVP.Rules.HIDS
         public string RuleId => "HIDS-P2/P3";
         public string Name => "Suspicious Process Execution";
         public string Description => "Detects processes or scripts running from user-writable directories.";
+        public int ItemsChecked { get; private set; }
 
         private readonly AppConfig _config;
 
@@ -25,6 +26,7 @@ namespace WinEDR_MVP.Rules.HIDS
         {
             var events = new List<DetectionEvent>();
             var processes = Process.GetProcesses();
+            ItemsChecked = processes.Length;
 
             foreach (var proc in processes)
             {

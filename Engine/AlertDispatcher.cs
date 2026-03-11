@@ -23,7 +23,7 @@ namespace WinEDR_MVP.Engine
             _agentId = Environment.MachineName; 
         }
 
-        public async Task DispatchAsync(Alert alert)
+        public async Task<bool> DispatchAsync(Alert alert)
         {
             try
             {
@@ -51,18 +51,11 @@ namespace WinEDR_MVP.Engine
 
                 var response = await _httpClient.SendAsync(request);
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"[AlertDispatcher] Failed to dispatch alert: {response.StatusCode}");
-                    Console.ResetColor();
-                }
+                return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"[AlertDispatcher] Error connecting to backend: {ex.Message}");
-                Console.ResetColor();
+                return false;
             }
         }
     }

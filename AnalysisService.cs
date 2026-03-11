@@ -7,6 +7,8 @@ using System.Net;
 using SharpPcap;
 using SharpPcap.LibPcap;
 using PacketDotNet;
+using WinEDR_MVP.Engine;
+using WinEDR_MVP.Models;
 
 namespace NetSuite
 {
@@ -17,6 +19,7 @@ namespace NetSuite
         static Dictionary<string, SourceMetrics> sourceStats = new Dictionary<string, SourceMetrics>();
         static Dictionary<string, string> arpTable = new Dictionary<string, string>(); // IP -> MAC
         static List<Alert> alerts = new List<Alert>();
+        static AlertManager? _alertManager;
 
         // High Risk Ports for NET-1
         static readonly HashSet<int> highRiskPorts = new HashSet<int> { 21, 22, 23, 445, 3389, 4444 };
@@ -59,8 +62,9 @@ namespace NetSuite
             public string Details { get; set; } = "";
         }
 
-        public static void Run(string pcapFile, bool skipHeader = false)
+        public static void Run(string pcapFile, AlertManager? alertManager = null, bool skipHeader = false)
         {
+            _alertManager = alertManager;
             if (!File.Exists(pcapFile))
             {
                 Console.WriteLine($"Error: File not found at path: {pcapFile}");
@@ -194,11 +198,11 @@ namespace NetSuite
             string senderMac = arp.SenderHardwareAddress.ToString();
 
             // NET-11: Spoofing
-            if (arpTable.ContainsKey(senderIp) && arpTable[senderIp] != senderMac)
-            {
-                alerts.Add(new Alert { Id = "NET-11", Message = "ARP Spoofing Detected", Source = senderIp, Details = $"MAC changed from {arpTable[senderIp]} to {senderMac}" });
-            }
             arpTable[senderIp] = senderMac;
+
+            var alert = new Alert { Id = "NET-11", Message = "ARP Spoofing Detected", Source = senderIp, Details = $"MAC changed from {arpTable[senderIp]} to {senderMac}" };
+            alerts.Add(alert);
+            PushToManager(alert);
 
             if (arp.Operation == ArpOperation.Request)
             {
@@ -233,7 +237,9 @@ namespace NetSuite
 
                 // NET-12: Spoofing (Simplified)
                 if (isResponse && !IsKnownResolver(src)) {
-                    alerts.Add(new Alert { Id = "NET-12", Message = "DNS Response from Unknown Resolver", Source = src, Target = dst, Details = $"Domain: {domain}" });
+                    var alert = new Alert { Id = "NET-12", Message = "DNS Response from Unknown Resolver", Source = src, Target = dst, Details = $"Domain: {domain}" };
+                    alerts.Add(alert);
+                    PushToManager(alert);
                 }
             } catch {}
         }
@@ -258,16 +264,19 @@ namespace NetSuite
             string payload = Encoding.ASCII.GetString(data);
             string lower = payload.ToLower();
 
-            // NET-8: Cleartext
             if (lower.Contains("password=") || lower.Contains("login=") || lower.Contains("user ") || lower.Contains("pass "))
             {
-                alerts.Add(new Alert { Id = "NET-8", Message = "Cleartext Credentials Found", Source = src, Target = dst, Details = $"Context: {lower.Substring(0, Math.Min(50, lower.Length))}" });
+                var alert = new Alert { Id = "NET-8", Message = "Cleartext Credentials Found", Source = src, Target = dst, Details = $"Context: {lower.Substring(0, Math.Min(50, lower.Length))}" };
+                alerts.Add(alert);
+                PushToManager(alert);
             }
 
             // NET-9: SQLi / XSS
             if (lower.Contains("union select") || lower.Contains("<script>") || lower.Contains("../") || lower.Contains("etc/passwd")) 
             {
-                 alerts.Add(new Alert { Id = "NET-9", Message = "Web Exploitation Signature", Source = src, Target = dst, Details = $"Payload match: {lower.Substring(0, Math.Min(50, lower.Length))}" });
+                 var alert = new Alert { Id = "NET-9", Message = "Web Exploitation Signature", Source = src, Target = dst, Details = $"Payload match: {lower.Substring(0, Math.Min(50, lower.Length))}" };
+                 alerts.Add(alert);
+                 PushToManager(alert);
             }
 
             // NET-15: Web Recon
@@ -291,27 +300,27 @@ namespace NetSuite
                 // NET-1: Port Scan
                 int scanThreshold = m.UniqueDstPorts.Any(p => highRiskPorts.Contains(p)) ? 5 : 30;
                 if (m.UniqueDstPorts.Count >= scanThreshold)
-                    alerts.Add(new Alert { Id = "NET-1", Message = "Port Scanning Detected", Source = m.Ip, Details = $"Unique Ports: {m.UniqueDstPorts.Count}" });
+                    AddToAlerts("NET-1", "Port Scanning Detected", m.Ip, $"Unique Ports: {m.UniqueDstPorts.Count}");
                 if (m.AbnormalFlagPackets >= 5)
-                    alerts.Add(new Alert { Id = "NET-1", Message = "Abnormal TCP Flags Detected", Source = m.Ip, Details = $"Packets: {m.AbnormalFlagPackets}" });
+                    AddToAlerts("NET-1", "Abnormal TCP Flags Detected", m.Ip, $"Packets: {m.AbnormalFlagPackets}");
 
                 // NET-2: Sweeps
                 if (m.IcmpUniqueDstIps.Count >= 30)
-                    alerts.Add(new Alert { Id = "NET-2", Message = "ICMP Sweep Detected", Source = m.Ip, Details = $"Unique Targets: {m.IcmpUniqueDstIps.Count}" });
+                    AddToAlerts("NET-2", "ICMP Sweep Detected", m.Ip, $"Unique Targets: {m.IcmpUniqueDstIps.Count}");
                 if (m.ArpUniqueTargetIps.Count >= 40)
-                    alerts.Add(new Alert { Id = "NET-2", Message = "ARP Sweep Detected", Source = m.Ip, Details = $"Unique Targets: {m.ArpUniqueTargetIps.Count}" });
+                    AddToAlerts("NET-2", "ARP Sweep Detected", m.Ip, $"Unique Targets: {m.ArpUniqueTargetIps.Count}");
 
                 // NET-4/5: Floods
                 if (m.UdpPackets >= 10000 || m.UniqueDstPorts.Count >= 100)
-                    alerts.Add(new Alert { Id = "NET-4", Message = "UDP Flood Detected", Source = m.Ip, Details = $"Packets: {m.UdpPackets}, Ports: {m.UniqueDstPorts.Count}" });
+                    AddToAlerts("NET-4", "UDP Flood Detected", m.Ip, $"Packets: {m.UdpPackets}, Ports: {m.UniqueDstPorts.Count}");
                 if (m.IcmpEchoRequests >= 5000)
-                    alerts.Add(new Alert { Id = "NET-5", Message = "ICMP Flood Detected", Source = m.Ip, Details = $"Requests: {m.IcmpEchoRequests}" });
+                    AddToAlerts("NET-5", "ICMP Flood Detected", m.Ip, $"Requests: {m.IcmpEchoRequests}");
 
                 // NET-3: SYN Flood
                 foreach (var connPair in m.Connections) {
                     var conn = connPair.Value;
                     if (conn.SynCount >= 500 && (conn.AckCount == 0 || (double)conn.AckCount / conn.SynCount <= 0.1))
-                        alerts.Add(new Alert { Id = "NET-3", Message = "SYN Flood Detected", Source = m.Ip, Target = connPair.Key, Details = $"SYN: {conn.SynCount}, ACK: {conn.AckCount}" });
+                        AddToAlerts("NET-3", "SYN Flood Detected", m.Ip, $"SYN: {conn.SynCount}, ACK: {conn.AckCount}", connPair.Key);
                 }
 
                 // NET-7/13: DNS
@@ -321,25 +330,57 @@ namespace NetSuite
                 if (m.DnsQueries.Keys.Any(d => d.Length >= 20)) dnsCond++;
                 if (nxRate >= 0.6 && m.TotalDnsQueries >= 20) dnsCond++;
                 if (m.DnsQueries.Count >= 25) dnsCond++;
-                if (dnsCond >= 2) alerts.Add(new Alert { Id = "NET-7", Message = "Suspicious DNS / DGA Pattern", Source = m.Ip, Details = $"Unique Domains: {m.DnsQueries.Count}, NX Rate: {nxRate:P}" });
+                if (dnsCond >= 2) AddToAlerts("NET-7", "Suspicious DNS / DGA Pattern", m.Ip, $"Unique Domains: {m.DnsQueries.Count}, NX Rate: {nxRate:P}");
 
                 // NET-14: Exfiltration
                 long totalOut = m.OutboundFlows.Sum(f => f.Bytes);
                 if (totalOut >= 500 * 1024 * 1024)
-                    alerts.Add(new Alert { Id = "NET-14", Message = "Large Outbound Transfer", Source = m.Ip, Details = $"Bytes: {totalOut / 1024 / 1024} MB" });
+                    AddToAlerts("NET-14", "Large Outbound Transfer", m.Ip, $"Bytes: {totalOut / 1024 / 1024} MB");
 
                 // NET-15: Web App
                 int authFailures = m.HttpStatusCodeCounts.GetValueOrDefault(401) + m.HttpStatusCodeCounts.GetValueOrDefault(403);
                 if (m.MaliciousUserAgentMatches >= 1 || authFailures >= 20 || m.HttpStatusCodeCounts.GetValueOrDefault(404) >= 50)
-                    alerts.Add(new Alert { Id = "NET-15", Message = "Web Reconnaissance Detected", Source = m.Ip, Details = $"Scanner Match: {m.MaliciousUserAgentMatches}, 404s: {m.HttpStatusCodeCounts.GetValueOrDefault(404)}" });
+                    AddToAlerts("NET-15", "Web Reconnaissance Detected", m.Ip, $"Scanner Match: {m.MaliciousUserAgentMatches}, 404s: {m.HttpStatusCodeCounts.GetValueOrDefault(404)}");
 
                 // NET-16: TTL
                 if (m.TtlValues.Count > 10) {
                     int massiveJump = 0;
                     for(int i=1; i<m.TtlValues.Count; i++) if (Math.Abs(m.TtlValues[i] - m.TtlValues[i-1]) > 32) massiveJump++;
-                    if (massiveJump >= 3) alerts.Add(new Alert { Id = "NET-16", Message = "TTL Anomaly Detected", Source = m.Ip, Details = $"Large TTL Fluctuations: {massiveJump}" });
+                    if (massiveJump >= 3) {
+                        var alert = new Alert { Id = "NET-16", Message = "TTL Anomaly Detected", Source = m.Ip, Details = $"Large TTL Fluctuations: {massiveJump}" };
+                        alerts.Add(alert);
+                        PushToManager(alert);
+                    }
                 }
             }
+        }
+
+        private static void AddToAlerts(string id, string message, string source, string details, string target = "")
+        {
+            var alert = new Alert { Id = id, Message = message, Source = source, Details = details, Target = target };
+            alerts.Add(alert);
+            PushToManager(alert);
+        }
+
+        private static void PushToManager(Alert networkAlert)
+        {
+            if (_alertManager == null) return;
+
+            var eAlert = new WinEDR_MVP.Models.Alert
+            {
+                RuleId = networkAlert.Id,
+                Title = networkAlert.Message,
+                Description = networkAlert.Details,
+                Severity = networkAlert.Id == "NET-9" || networkAlert.Id == "NET-3" ? AlertSeverity.High : AlertSeverity.Medium,
+                Type = AlertType.Network,
+                SourceProcess = "PcapEngine",
+                Metadata = new {
+                    Source = networkAlert.Source,
+                    Target = networkAlert.Target
+                }
+            };
+
+            _alertManager.AddAlert(eAlert);
         }
 
         private static double CalculateEntropy(string s) {
