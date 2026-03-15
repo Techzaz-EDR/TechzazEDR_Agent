@@ -14,13 +14,12 @@ namespace WinEDR_MVP.Engine
         private readonly string _organizationApiKey;
         private readonly string _agentId;
 
-        public AlertDispatcher(string backendUrl, string organizationApiKey)
+        public AlertDispatcher(string backendUrl, string organizationApiKey, string agentId)
         {
             _httpClient = new HttpClient();
             _backendUrl = backendUrl.TrimEnd('/');
             _organizationApiKey = organizationApiKey;
-            // Use MachineName as the default AgentId
-            _agentId = Environment.MachineName; 
+            _agentId = agentId; 
         }
 
         public async Task<bool> DispatchAsync(Alert alert)

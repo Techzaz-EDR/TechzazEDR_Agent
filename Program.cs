@@ -20,10 +20,15 @@ namespace UnifiedSecurityAnalyzer
         private static DetectionEngine _engine = null!;
         private static AlertManager _alertManager = null!;
         private static AppConfig _config = null!;
+        private static CommandService _commandService = null!;
 
         static async Task Main(string[] args)
         {
             Console.Title = "Unified Security Analyzer";
+
+            // Initialize configuration and command sync
+            SetupConfig();
+            InitializeCommandSync();
 
             while (true)
             {
@@ -106,7 +111,7 @@ namespace UnifiedSecurityAnalyzer
         {
             // Initialize the dispatcher to send alerts to the backend
             var backendUrl = "http://localhost:8000"; // Can be moved to AppConfig if desired
-            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey);
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId);
 
             _alertManager = new AlertManager("alerts.log", dispatcher);
             _alertManager.SilentMode = silent;
@@ -187,11 +192,11 @@ namespace UnifiedSecurityAnalyzer
 
         // --- PCAP Analyzer Integration ---
 
-        static async Task RunPcapCaptureAndAnalysis()
+        static async Task RunPcapCaptureAndAnalysis(bool silent = false)
         {
             SetupConfig();
-            SetupEngine(silent: true);
-            _alertManager.SilentMode = true; 
+            SetupEngine(silent);
+            _alertManager.SilentMode = silent; 
 
             string pcapDir = GetPcapDir();
 
@@ -297,6 +302,46 @@ namespace UnifiedSecurityAnalyzer
 
             Console.WriteLine("\n--- 2. NETWORK PCAP ANALYSIS RESULTS ---");
             AnalysisService.Run(capturedFile, _alertManager, skipHeader: true);
+        }
+
+        private static void InitializeCommandSync()
+        {
+            var backendUrl = "http://localhost:8000";
+            _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, ExecuteRemoteCommand);
+            _commandService.Start();
+        }
+
+        private static async Task ExecuteRemoteCommand(string command)
+        {
+            switch (command.ToLower())
+            {
+                case "run_hids_scan":
+                case "system_scan":
+                    await RunProcessAndFileScan(silent: false);
+                    break;
+                case "run_network_scan":
+                case "network_scan":
+                    await RunPcapCaptureAndAnalysis(silent: false);
+                    break;
+                case "update_config":
+                    SetupConfig();
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [✓] CONFIG: Reloaded configuration.");
+                    break;
+                default:
+                    throw new Exception($"Unknown command: {command}");
+            }
+
+            // Show alert dispatch summary after remote scan
+            if (_alertManager != null)
+            {
+                var (success, failure) = await _alertManager.WaitForDispatchesAsync();
+                if (success > 0 || failure > 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [✓] SYNC: Successfully dispatched {success} alerts to dashboard{(failure > 0 ? $" ({failure} failed)" : "")}.");
+                    Console.ResetColor();
+                }
+            }
         }
     }
 }

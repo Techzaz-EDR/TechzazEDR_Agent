@@ -1,4 +1,6 @@
 {
+  "AgentId": "DESKTOP-TEST1",
+  "OrganizationApiKey": "tz_demo_d3m00rgk3y",
   "TrustedSystemProcesses": [],
   "TrustedExecutionPaths": [],
   "UntrustedExecutionPaths": [
