@@ -1,122 +1,56 @@
-# Unified Security Analyzer (CLI)
+# TechzazEDR Unified Security Agent
 
-Unified Security Analyzer is a consolidated threat detection tool running as a single `.NET 10.0` console application. This project merges the capabilities of the **Process & File Analyser** (HIDS / Malware detection) and the **NetSuite PCAP Analyzer** (Network capture and anomaly detection) into one interactive toolkit.
+A consolidated threat detection engine running as a high-performance `.NET 10.0` console application. This agent combines Host-based Intrusion Detection (HIDS), Malware Scanning, and Network Traffic Analysis into a single, modular toolkit that streams real-time telemetry to the TechzazEDR Dashboard.
 
 ## 🛡️ Core Capabilities
 
 ### 1. Process & Registry Monitoring (HIDS)
-Validates the integrity of the live environment:
-- **Process Masquerading**: Flags system binaries (e.g., `explorer.exe`) executing from untrusted locations.
-- **Suspicious Path Execution**: Identifies scripts and executables executing from frequently abused directories (`%TEMP%`, `Downloads`, etc.).
-- **Registry Persistence**: Scans Windows Startup keys (`Run`/`RunOnce`) for entries pointing to high-risk paths like `AppData`.
+Heuristic analysis of the live environment:
+- **Process Masquerading**: Flags system binaries (e.g., `svchost.exe`) executing from untrusted or temporary paths.
+- **Suspicious Path Execution**: Monitors `%TEMP%`, `%APPDATA%`, and `Downloads` for unauthorized executables.
+- **Registry Persistence**: Scans Windows Startup keys (`Run`/`RunOnce`) for entries pointing to high-risk areas.
 
 ### 2. Malware & File Scanning
-Inspects configured directories for file-based threats:
-- **Double Extension Detection**: Detects spoofed extensions (e.g., `.pdf.exe`, `.txt.js`).
-- **Hidden Executables**: Flags executable files with the "Hidden" attribute enabled in untrusted paths.
-- **YARA Integration**: Seamlessly executes the official `yara64.exe` to scan paths against provided `.yar` rules, triggering alerts natively within the engine.
+Deep inspection of the local file system:
+- **Double Extension Detection**: Identifies spoofed files like `invoice.pdf.exe`.
+- **Hidden Executables**: Flags executable files with "Hidden" attributes in common abuse directories.
+- **YARA Integration**: Native support for **YARA 4.2+** rules via `yara64.exe` to detect complex malware signatures.
 
-### 3. Network Traffic Analysis & Capture
-Leverages `SharpPcap` and `PacketDotNet` to capture and inspect live network data. The analyzer categorizes detections into four primary categories:
+- **Spoofing**: Detecting ARP and DNS spoofing / MITM attempts.
 
-#### Reconnaissance & Scanning
-| ID | Name | Description | Logic / Threshold |
-|:---|:---|:---|:---|
-| **NET-1** | Port Scanning | Mapping open ports on a single or multiple hosts. | Unique ports >= 30 (or 5 for high-risk ports). |
-| **NET-2** | Network Sweeps | Identifying active hosts using ICMP or ARP. | ICMP: 30+ targets, ARP: 40+ targets. |
-| **NET-15** | Web Recon | Usage of automated web vulnerability scanners. | User-Agent matches (sqlmap, nmap, etc.) or high 404/403 rates. |
+## ⚙️ Detection Logic Functions
 
-#### Denial of Service (DoS)
-| ID | Name | Description | Logic / Threshold |
-|:---|:---|:---|:---|
-| **NET-3** | SYN Flood | Exhausting server resources with half-open TCP connections. | 500+ SYNs with < 10% ACK ratio. |
-| **NET-4** | UDP Flood | Overwhelming the network with high-volume UDP traffic. | 10,000+ packets or 100+ unique destination ports. |
-| **NET-5** | ICMP Flood | Sending excessive ICMP Echo Requests (Ping). | 5,000+ ICMP Echo Requests. |
+The agent employs a multi-layered detection strategy to provide holistic endpoint protection.
 
-#### Exploitation & Spoofing
-| ID | Name | Description | Logic / Threshold |
-|:---|:---|:---|:---|
-| **NET-8** | Cleartext Credentials | Detecting sensitive data in unencrypted streams. | Regex/Keyword match for `password=`, `login=`, etc. |
-| **NET-9** | Web Exploitation | Detecting common web-based attack signatures. | Match for `union select` (SQLi), `<script>` (XSS), etc. |
-| **NET-11** | ARP Spoofing | Detecting MAC address inconsistencies (MITM). | Detects when a known IP changes its associated MAC. |
-| **NET-12** | DNS Spoofing | Detecting unauthorized DNS responses. | Responses originating from unknown/rogue resolvers. |
+### 🧠 Heuristic Threat Detection
+- **Masquerading Engine**: Uses a path-expectation matrix to verify if critical binaries (like `lsass.exe` or `svchost.exe`) are executing from legitimate system directories.
+- **Persistence Scanner**: Iterates through Windows Registry keys (`Software\Microsoft\Windows\CurrentVersion\Run`) to find high-risk entries pointing to User Profile directories.
+- **Behavioral Analysis**: Monitors for suspicious process parent-child relationships and unexpected execution of scripting engines (`powershell.exe`, `cmd.exe`).
 
-#### Data Exfiltration & Anomalies
-| ID | Name | Description | Logic / Threshold |
-|:---|:---|:---|:---|
-| **NET-7** | DNS / DGA | Detecting Domain Generation Algorithms (C2 traffic). | High entropy (>3.8), long domains, or high NXDOMAIN rate. |
-| **NET-14** | Data Exfiltration | Detecting large-scale outbound data transfers. | 500 MB+ transferred to an external (non-private) IP. |
-| **NET-16** | TTL Anomaly | Detecting packet injection or routing inconsistencies. | Jumps > 32 in IP Time-to-Live (TTL) values. |
-| **NET-1** | TCP Flag Anomaly | Detecting stealth scans with invalid flag combinations. | >= 5 packets with FIN-only, NULL, or XMAS flags. |
+### 📑 Signature-Based Detection
+- **YARA Integration**: Seamlessly interfaces with `yara64.exe` to scan live processes and files against custom `.yar` rules.
+- **Spoofed Extension Engine**: Detects the "Right-to-Left Override" trick and common double-extension techniques (`.docx.exe`).
+- **Hidden File Detection**: Identifies executable content flagged with the `Hidden` attribute in untrusted paths like `AppData\Temp`.
 
-## 🚀 Execution & Usage
+### 📡 Network Anomaly Detection
+- **Traffic Fingerprinting**: Analyzes packet headers to identify invalid TCP flag combinations (XMAS, NULL scans).
+- **Entropy Analysis**: Calculates Shannon entropy on DNS queries to detect Domain Generation Algorithms (DGA) used by C2 servers.
+- **Volume Inconsistency**: Threshold-based logic to flag SYN/UDP floods and massive data exfiltration events.
 
-Because network capture requires raw socket access, **running the application as Administrator is highly recommended**.
+### 🔄 Multi-Threaded Operation
+The agent utilizes `.NET` task parallelism to ensure detection engines run concurrently without impacting system performance:
+- **Background Capture**: Network traffic is captured and stored in circular buffers for real-time analysis.
+- **Periodic Scans**: HIDS engines execute on scheduled intervals or manual triggers.
+- **Async Dispatching**: Alerts are queued and sent in the background via the `AlertDispatcher` to prevent execution blocking.
 
-### Running the App
-```bash
-dotnet run
-```
+## 🔌 Integration & Pipeline
 
-### Sample Alerts
-When a threat is detected, the program outputs color-coded alerts to the console:
+The agent acts as a telemetry producer for the TechzazEDR ecosystem. It serializes detections into a unified JSON format and pushes them to the backend API over HTTPS.
 
-**Process & File Alert Examples:**
-- `[System Scan ALERT] MAL (High): System Process Masquerading - System process svchost.exe running from illegitimate location: C:\Users\Public\svchost.exe. Expected one of: C:\Windows\System32\, C:\Windows\SysWOW64\`
-- `[System Scan ALERT] MAL (Medium): Double Extension Detection - Potential malicious file detected: payment_receipt.pdf.exe`
-- `[System Scan ALERT] MAL (High): YARA Match: Ransomware_WannaCry - File matched YARA rule 'Ransomware_WannaCry': my_document.exe`
-
-**Network Alert Examples:**
-- `[NET-1] Port Scanning Detected`
-- `   Source: 192.168.1.15`
-- `   Details: Unique Ports: 35`
-- `[NET-12] DNS Response from Unknown Resolver`
-- `   Source: 104.21.5.10`
-- `   Details: Domain: malicious-c2-server.com`
-
-### Main Menu Options
-
-When you launch the program, you are presented with the following interactive menu:
-
-1. **Run Process & File System Security Scan**
-   Executes a full, immediate scan of local processes, registry keys, and untrusted directories. Outputs color-coded alerts to the console.
-
-2. **Run Network Pcap Analyzer (Live Capture + Analysis)**
-   Automatically selects the optimal network interface, promiscuously captures 60 seconds of traffic, saves it to the `pcap/` folder, and then runs threat analysis.
-
-3. **Run Process & File System Security Scan and Analyze Existing Pcap File**
-   Reads all files from the local `pcap/` directory and allows you to select one. It will perform a live system threat scan and then parse the selected `.pcap` offline to produce a combined report.
-
-4. **Run Both at Once (Live Network Capture + System Scan)**
-   Utilizes `.NET` task concurrency. Captures 60 seconds of network traffic in the background while simultaneously performing the local System Process & File Scan. It then waits for both to finish and outputs a single, consolidated report.
-
-5. **Exit**
-   Closes the application.
-
-## ⚙️ Configuration
-
-Modify `config.json` to customize the detection scope for the HIDS engine:
-- `OrganizationApiKey`: The unique API Key corresponding to your tenant organization's dashboard (default: `tz_live_...`).
-- `TrustedExecutionPaths`: Whitelisted directories for system binaries.
-- `UntrustedExecutionPaths`: High-risk zones targeted for deep monitoring.
-- `TrustedSystemProcesses`: List of legitimate system process names.
-- `YaraRulesPath`: Directory containing `.yar` rules (default: `Rules\Yara`).
-
-Network Analyzer DNS Whitelisting:
-- Local IP resolving (`192.168.1.1`), `8.8.8.8`, and `1.1.1.1` are inherently trusted internally when evaluating `NET-12` (DNS Spoofing).
-
-## Centralized Alerting & Integration (JSON)
-
-The application features an asynchronous HTTP dispatcher (`AlertDispatcher.cs`) that serializes detected threats into structured JSON payloads and pushes them to a centralized backend using a multi-tenant hierarchy securely. 
-
-Rather than sending the Organization ID directly, the Agent sends the specific `OrganizationApiKey` directly inside the `x-api-key` HTTP Header. The backend API handles resolving the company ID and implicitly routing/creating the agent records.
-
-By default, the agent pushes POST requests to: `http://localhost:8000/api/v1/alerts?agent_id={MACHINE_NAME}`
-
-**The Unified `SecurityAlert` Model:**
+### The `SecurityAlert` Schema
 ```json
 {
-  "Timestamp": "2026-03-07T02:30:00.0000000Z",
+  "Timestamp": "2026-03-07T02:30:00Z",
   "RuleId": "NET-12",
   "Category": "Network",
   "Severity": "High",
@@ -129,13 +63,41 @@ By default, the agent pushes POST requests to: `http://localhost:8000/api/v1/ale
   }
 }
 ```
-*Note: The `Details` dictionary maps dynamic key-value pairs depending on whether the Category is `Network` (source IPs), `File` (Target Paths), or `Process` (Registry Keys).*
 
-## �🛠️ Technology Stack
-- **Framework**: .NET 10 (Windows Console)
-- **Core Dependencies**: `SharpPcap`, `PacketDotNet`, `dnYara`, `Microsoft.Win32.Registry`, `System.Text.Json`, `yara64.exe` (CLI dependency).
-- **Architecture**: Modular heuristic detection engine combined with real-time network protocol parsers.
+## 🚀 Execution & Usage
+
+### Prerequisites
+- **.NET 10.0 SDK**
+- **Npcap**: Required for network capture features.
+- **Administrator Privileges**: Essential for raw socket access and registry scanning.
+
+### Running the Agent
+```bash
+dotnet run
+```
+
+### Main Menu Options
+1. **Full System Security Scan**: Immediate HIDS and File scan.
+2. **Network Pcap Analyzer**: 60-second live capture and automated DPI.
+3. **Offline Pcap Analysis**: Load existing `.pcap` files for forensic review.
+4. **Unified Mode**: Background network capture while running a system scan.
+
+## ⚙️ Configuration (`config.json`)
+
+| Setting | Description |
+|:---|:---|
+| `OrganizationApiKey` | Unique key to link alerts to your tenant dashboard. |
+| `UntrustedExecutionPaths` | Paths targeted for aggressive monitoring (e.g., Temp, Downloads). |
+| `ProcessPathExpectations` | Map of system processes to their legitimate directories. |
+| `YaraRulesPath` | Directory containing `.yar` rule files. |
+
+## 🛠️ Troubleshooting
+
+- **"No interfaces found"**: Ensure **Npcap** is installed and you are running as **Administrator**.
+- **"Access Denied"**: Registry scanning and process memory access require elevated privileges.
+- **Alerts not showing in Dashboard**: 
+  - Verify your `OrganizationApiKey` in `config.json`.
+  - Check connectivity to the backend API (Default: `http://localhost:8000`).
 
 ---
-> [!IMPORTANT]
-> This project is a Proof-of-Concept for educational and forensic demonstration. Ensure that the required libraries (like Npcap) are installed on your system for the network features to work correctly.
+> This project is designed for security enthusiasts and forensic analysts. Always use in a controlled environment.
