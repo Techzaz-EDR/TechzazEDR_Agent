@@ -323,6 +323,10 @@ namespace TechzazEdrWindowsAgent
                 case "network_scan":
                     await RunPcapCaptureAndAnalysis(silent: false);
                     break;
+                case "run_full_scan":
+                case "full_scan":
+                    await RunBothAtOnce();
+                    break;
                 case "update_config":
                     SetupConfig();
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [✓] CONFIG: Reloaded configuration.");

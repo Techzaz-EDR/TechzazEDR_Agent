@@ -46,6 +46,7 @@ namespace WinEDR_MVP.Rules.HIDS
                                         Severity = AlertSeverity.Medium,
                                         Type = AlertType.MAL,
                                         Description = $"Registry Persistence found in {keyPath}: {valueName} -> {value}",
+                                        Metadata = new { FilePath = value, RegistryKey = keyPath, ValueName = valueName }
                                     });
                                 }
                             }
