@@ -1,0 +1,31 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(23,28): warning CS8603: Possible null reference return. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(28,46): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(63,28): warning CS8603: Possible null reference return. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(117,24): warning CS8603: Possible null reference return. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(122,24): warning CS8603: Possible null reference return. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Rules\HIDS\StartupPersistenceRule.cs(30,46): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(363,72): error CS0117: 'AlertType' does not contain a definition for 'HIDS' [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(364,70): error CS0117: 'AlertType' does not contain a definition for 'HIDS' [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(365,69): error CS0117: 'AlertType' does not contain a definition for 'HIDS' [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(366,74): error CS0117: 'AlertType' does not contain a definition for 'HIDS' [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(390,44): error CS0246: The type or namespace name 'Models' could not be found (are you missing a using directive or an assembly reference?) [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+
+Build FAILED.
+
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(23,28): warning CS8603: Possible null reference return. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(28,46): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(63,28): warning CS8603: Possible null reference return. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(117,24): warning CS8603: Possible null reference return. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\CaptureService.cs(122,24): warning CS8603: Possible null reference return. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Rules\HIDS\StartupPersistenceRule.cs(30,46): warning CS8600: Converting null literal or possible null value to non-nullable type. [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(363,72): error CS0117: 'AlertType' does not contain a definition for 'HIDS' [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(364,70): error CS0117: 'AlertType' does not contain a definition for 'HIDS' [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(365,69): error CS0117: 'AlertType' does not contain a definition for 'HIDS' [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(366,74): error CS0117: 'AlertType' does not contain a definition for 'HIDS' [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+D:\Documents\GitHub\TechzazEDR_Agent\Program.cs(390,44): error CS0246: The type or namespace name 'Models' could not be found (are you missing a using directive or an assembly reference?) [D:\Documents\GitHub\TechzazEDR_Agent\TechzazEdrWindowsAgent.csproj]
+    6 Warning(s)
+    5 Error(s)
+
+Time Elapsed 00:00:00.97

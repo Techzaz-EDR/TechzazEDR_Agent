@@ -325,6 +325,8 @@ namespace TechzazEdrWindowsAgent
                     break;
                 case "run_full_scan":
                 case "full_scan":
+                case "run_remote_scan":
+                case "remote_scan":
                     await RunBothAtOnce();
                     break;
                 case "update_config":
