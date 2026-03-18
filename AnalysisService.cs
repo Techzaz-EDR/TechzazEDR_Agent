@@ -302,7 +302,7 @@ namespace NetSuite
                 if (m.UniqueDstPorts.Count >= scanThreshold)
                     AddToAlerts("NET-1", "Port Scanning Detected", m.Ip, $"Unique Ports: {m.UniqueDstPorts.Count}");
                 if (m.AbnormalFlagPackets >= 5)
-                    AddToAlerts("NET-1", "Abnormal TCP Flags Detected", m.Ip, $"Packets: {m.AbnormalFlagPackets}");
+                    AddToAlerts("NET-10", "Abnormal TCP Flags Detected", m.Ip, $"Packets: {m.AbnormalFlagPackets}");
 
                 // NET-2: Sweeps
                 if (m.IcmpUniqueDstIps.Count >= 30)
