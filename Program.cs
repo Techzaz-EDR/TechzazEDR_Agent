@@ -13,7 +13,7 @@ using System.Linq;
 // PCAP Analyzer namespaces
 using NetSuite;
 
-namespace UnifiedSecurityAnalyzer
+namespace TechzazEdrWindowsAgent
 {
     class Program
     {
@@ -24,7 +24,7 @@ namespace UnifiedSecurityAnalyzer
 
         static async Task Main(string[] args)
         {
-            Console.Title = "Unified Security Analyzer";
+            Console.Title = "TechzazEdr Windows Agent";
 
             // Initialize configuration and command sync
             SetupConfig();
@@ -33,7 +33,7 @@ namespace UnifiedSecurityAnalyzer
             while (true)
             {
                 Console.WriteLine("\n========================================");
-                Console.WriteLine("       UNIFIED SECURITY ANALYZER        ");
+                Console.WriteLine("       TECHZAZEDR WINDOWS AGENT        ");
                 Console.WriteLine("========================================");
                 Console.WriteLine("1. Integrated Analysis (System Scan + PCAP File)");
                 Console.WriteLine("2. Live Security Analyzer (System Scan + Live Capture)");
