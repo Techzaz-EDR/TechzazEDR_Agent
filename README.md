@@ -44,7 +44,7 @@ graph TD
 | Field | Description |
 | :--- | :--- |
 | `OrganizationApiKey` | Your unique key from the Dashboard to link alerts to your tenant. |
-| `BackendUrl` | API endpoint for alert ingestion (Default: `http://localhost:8000`). |
+| `BackendUrl` | API endpoint for alert ingestion (Default: `https://techzazedrdashboard-backend-production.up.railway.app`). |
 | `YaraRulesPath` | Directory containing your `.yar` signature files. |
 | `UntrustedExecutionPaths`| List of directories monitored for masquerading binaries. |
 

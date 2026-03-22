@@ -110,7 +110,7 @@ namespace TechzazEdrWindowsAgent
         static void SetupEngine(bool silent)
         {
             // Initialize the dispatcher to send alerts to the backend
-            var backendUrl = "http://localhost:8000"; // Can be moved to AppConfig if desired
+            var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app"; // Can be moved to AppConfig if desired
             var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId);
 
             _alertManager = new AlertManager("alerts.log", dispatcher);
@@ -306,7 +306,7 @@ namespace TechzazEdrWindowsAgent
 
         private static void InitializeCommandSync()
         {
-            var backendUrl = "http://localhost:8000";
+            var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
             _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, ExecuteRemoteCommand);
             _commandService.Start();
         }
