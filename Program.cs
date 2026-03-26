@@ -79,7 +79,7 @@ namespace TechzazEdrWindowsAgent
 
         // --- Process & File Analyser Integration ---
 
-        static async Task RunProcessAndFileScan(bool silent = false)
+        static async Task<bool> RunProcessAndFileScan(bool silent = false, string? cmdId = null)
         {
             SetupConfig();
             SetupEngine(silent);
@@ -92,10 +92,15 @@ namespace TechzazEdrWindowsAgent
                 Console.WriteLine($"[{timestamp}] [i] CONFIG: Loaded {_config.ProcessPathExpectations.Count + _config.UntrustedExecutionPaths.Count} trusted/monitored paths, {Directory.GetFiles(_config.YaraRulesPath, "*.yar", SearchOption.AllDirectories).Length} YARA rules.");
             }
             
-            var stats = _engine.RunCycle();
+            var stats = await _engine.RunCycle(cmdId != null ? () => IsCancelled(cmdId) : null);
+
+            if (stats.AlertsFound < 0) return true; // Engine returned abort (stats logic would need update or check IsCancelled)
+            if (await IsCancelled(cmdId)) return true;
 
             if (!silent) 
                 Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [✓] SCAN COMPLETE: {stats.ItemsChecked} items checked, {stats.AlertsFound} alerts found.");
+            
+            return false;
         }
 
         static void SetupConfig()
@@ -193,24 +198,27 @@ namespace TechzazEdrWindowsAgent
 
         // --- PCAP Analyzer Integration ---
 
-        static async Task RunPcapCaptureAndAnalysis(bool silent = false)
+        static async Task<bool> RunPcapCaptureAndAnalysis(bool silent = false, string? cmdId = null)
         {
             SetupConfig();
             SetupEngine(silent);
             _alertManager.SilentMode = silent; 
+            _alertManager.DispatchDisabled = false;
 
             string pcapDir = GetPcapDir();
 
-            string capturedFile = CaptureService.Run(pcapDir);
+            string capturedFile = await CaptureService.Run(pcapDir, cmdId != null ? () => IsCancelled(cmdId) : null);
+            if (await IsCancelled(cmdId)) return true;
 
             if (string.IsNullOrEmpty(capturedFile) || !File.Exists(capturedFile))
             {
                 Console.WriteLine("Capture failed or file was not created. Aborting analysis.");
-                return;
+                return false;
             }
 
             Console.WriteLine("\nCapture Complete. Proceeding to Analysis...\n");
             AnalysisService.Run(capturedFile, _alertManager);
+            return await IsCancelled(cmdId);
         }
 
         static async Task RunPcapAnalysis()
@@ -229,7 +237,7 @@ namespace TechzazEdrWindowsAgent
             string targetFile = files[0];
 
             Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [*] INITIALIZING: Integrated System & PCAP Analysis...");
-            await RunProcessAndFileScan(silent: true);
+            await RunProcessAndFileScan(silent: true, cmdId: null);
 
             Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [i] NETWORK: Analyzing PCAP: {Path.GetFileName(targetFile)}...");
             
@@ -267,18 +275,19 @@ namespace TechzazEdrWindowsAgent
             return pcapDir;
         }
 
-        static async Task RunBothAtOnce()
+        static async Task RunBothAtOnce(string? cmdId = null)
         {
             Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [*] INITIALIZING: Simultaneous Live Capture & System Scan...");
             
             string pcapDir = GetPcapDir();
             
             // Start network capture in the background
-            Task<string> captureTask = Task.Run(() => CaptureService.Run(pcapDir));
+            Task<string?> captureTask = Task.Run(async () => await CaptureService.Run(pcapDir, cmdId != null ? () => IsCancelled(cmdId) : null));
 
             // Run system scan on the main thread while capture is ongoing, but keep it silent
-            await RunProcessAndFileScan(silent: true);
+            if (await RunProcessAndFileScan(silent: true, cmdId: cmdId)) return;
 
+            if (await IsCancelled(cmdId)) return;
             Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [i] WAITING: Finalizing Network Capture (60s total)...");
             string capturedFile = await captureTask;
 
@@ -340,7 +349,7 @@ namespace TechzazEdrWindowsAgent
             _engine.RegisterRule(new StartupPersistenceRule());
             _engine.RegisterRule(new FileScannerRule(_config));
             _engine.RegisterRule(new YaraScannerRule(_config));
-            _engine.RunCycle();
+            await _engine.RunCycle();
 
             // PCAP in testfolder
             var pcapFiles = Directory.GetFiles(testFolder, "*.pcap");
@@ -382,6 +391,7 @@ namespace TechzazEdrWindowsAgent
             }
 
             Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] [*] STARTING REPRODUCIBILITY TEST...");
+            if (await IsCancelled(cmdId)) return;
 
             // Use a no-dispatch AlertManager — nothing goes to the dashboard
             var silentManager = new AlertManager("repro_test.log", null);
@@ -401,11 +411,13 @@ namespace TechzazEdrWindowsAgent
             _engine.RegisterRule(new YaraScannerRule(_config));
 
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] SCANNING: {testFolder}...");
-            _engine.RunCycle();
+            if (await IsCancelled(cmdId)) return;
+            await _engine.RunCycle(() => IsCancelled(cmdId));
 
             var pcapFiles = Directory.GetFiles(testFolder, "*.pcap");
             if (pcapFiles.Length > 0)
             {
+                if (await IsCancelled(cmdId)) return;
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] ANALYZING: {Path.GetFileName(pcapFiles[0])}...");
                 AnalysisService.Run(pcapFiles[0], silentManager, skipHeader: true);
             }
@@ -448,9 +460,26 @@ namespace TechzazEdrWindowsAgent
             Console.ResetColor();
             Console.WriteLine(new string('-', 40));
 
+            // Final cancellation check before reporting
+            if (await IsCancelled(cmdId)) return;
+
             // Patch the score back to the command document (visible in dashboard)
             string scoreResult = $"{percentage:F1}% ({matched}/{totalExpected})";
             await _commandService.UpdateStatusWithResult(cmdId, "completed", scoreResult);
+        }
+
+        static async Task<bool> IsCancelled(string? cmdId)
+        {
+            if (string.IsNullOrEmpty(cmdId)) return false;
+            var status = await _commandService.GetCommandStatus(cmdId);
+            if (status == "cancelled")
+            {
+                _alertManager.DispatchDisabled = true;
+                _alertManager.StopDispatching();
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [!] ABORTED: Command {cmdId} cancelled by user.");
+                return true;
+            }
+            return false;
         }
 
         private static void InitializeCommandSync()
@@ -467,17 +496,17 @@ namespace TechzazEdrWindowsAgent
             {
                 case "run_hids_scan":
                 case "system_scan":
-                    await RunProcessAndFileScan(silent: false);
+                    await RunProcessAndFileScan(silent: false, cmdId: cmdId);
                     break;
                 case "run_network_scan":
                 case "network_scan":
-                    await RunPcapCaptureAndAnalysis(silent: false);
+                    await RunPcapCaptureAndAnalysis(silent: false, cmdId: cmdId);
                     break;
                 case "run_full_scan":
                 case "full_scan":
                 case "run_remote_scan":
                 case "remote_scan":
-                    await RunBothAtOnce();
+                    await RunBothAtOnce(cmdId: cmdId);
                     break;
                 case "run_test_scan":
                     await RunReproducibilityTest(cmdId);
@@ -489,6 +518,9 @@ namespace TechzazEdrWindowsAgent
                 default:
                     throw new Exception($"Unknown command: {command}");
             }
+
+            // Do not show dispatch summary if cancelled
+            if (await IsCancelled(cmdId)) return;
 
             // Show alert dispatch summary after remote scan
             if (_alertManager != null)

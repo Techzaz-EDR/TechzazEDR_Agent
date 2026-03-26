@@ -99,6 +99,27 @@ namespace WinEDR_MVP.Engine
             }
         }
 
+        public async Task<string?> GetCommandStatus(string cmdId)
+        {
+            string url = $"{_backendUrl}/api/v1/commands/{cmdId}?agent_id={_agentId}";
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Add("x-api-key", _organizationApiKey);
+
+            try
+            {
+                var response = await _httpClient.SendAsync(request);
+                if (!response.IsSuccessStatusCode) return null;
+
+                var json = await response.Content.ReadAsStringAsync();
+                var cmd = JsonSerializer.Deserialize<JsonElement>(json);
+                return cmd.GetProperty("status").GetString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private async Task UpdateStatus(string cmdId, string status)
         {
             string url = $"{_backendUrl}/api/v1/commands/{cmdId}?agent_id={_agentId}&status={status}";

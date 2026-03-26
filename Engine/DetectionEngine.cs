@@ -27,11 +27,13 @@ namespace WinEDR_MVP.Engine
             public int AlertsFound;
         }
 
-        public DetectionStats RunCycle()
+        public async Task<DetectionStats> RunCycle(Func<Task<bool>>? cancellationCheck = null)
         {
             DetectionStats stats = new DetectionStats();
             foreach (var rule in _rules)
             {
+                if (cancellationCheck != null && await cancellationCheck()) break;
+
                 try
                 {
                     var events = rule.Evaluate();

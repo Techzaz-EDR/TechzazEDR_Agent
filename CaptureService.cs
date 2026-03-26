@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using SharpPcap;
 using SharpPcap.LibPcap;
 
@@ -8,7 +9,7 @@ namespace NetSuite
 {
     public class CaptureService
     {
-        public static string Run(string outputDir)
+        public static async Task<string?> Run(string outputDir, Func<Task<bool>>? cancellationCheck = null)
         {
 
             try
@@ -100,7 +101,20 @@ namespace NetSuite
                 selectedDevice.StartCapture();
                 
                 // 4. Timer Logic
-                Thread.Sleep(60000); // 60 seconds (1 minute)
+                int durationMs = 60000;
+                int elapsedMs = 0;
+                int stepMs = 500;
+
+                while (elapsedMs < durationMs)
+                {
+                    if (cancellationCheck != null && await cancellationCheck())
+                    {
+                        Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] [!] ABORTING: Network capture cancelled by user.");
+                        break;
+                    }
+                    await Task.Delay(stepMs);
+                    elapsedMs += stepMs;
+                }
 
                 // Stop capture
                 selectedDevice.StopCapture();
