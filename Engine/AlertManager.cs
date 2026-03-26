@@ -18,6 +18,7 @@ namespace WinEDR_MVP.Engine
         public int FailureCount { get; private set; } = 0;
 
         public bool SilentMode { get; set; } = false;
+        public bool DispatchDisabled { get; set; } = false;
         public AlertDispatcher? Dispatcher => _dispatcher;
 
         public event Action<Alert>? OnAlert;
@@ -37,7 +38,7 @@ namespace WinEDR_MVP.Engine
                 OnAlert?.Invoke(alert);
                 
                 // Track the dispatch task and its result
-                if (_dispatcher != null)
+                if (_dispatcher != null && !DispatchDisabled)
                 {
                     var task = _dispatcher.DispatchAsync(alert);
                     _dispatchTasks.Add(task);
@@ -154,6 +155,11 @@ namespace WinEDR_MVP.Engine
             {
                 return new List<Alert>(_alerts);
             }
+        }
+
+        public void StopDispatching()
+        {
+            _dispatcher?.Stop();
         }
 
         public void PrintAllAlerts()
