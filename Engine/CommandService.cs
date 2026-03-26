@@ -14,10 +14,10 @@ namespace WinEDR_MVP.Engine
         private readonly string _backendUrl;
         private readonly string _organizationApiKey;
         private readonly string _agentId;
-        private readonly Func<string, Task> _commandExecutor;
+        private readonly Func<string, string, Task> _commandExecutor;
         private bool _isRunning;
 
-        public CommandService(string backendUrl, string organizationApiKey, string agentId, Func<string, Task> commandExecutor)
+        public CommandService(string backendUrl, string organizationApiKey, string agentId, Func<string, string, Task> commandExecutor)
         {
             _httpClient = new HttpClient();
             _backendUrl = backendUrl.TrimEnd('/');
@@ -84,8 +84,8 @@ namespace WinEDR_MVP.Engine
 
                 try
                 {
-                    // 2. Execute
-                    await _commandExecutor(cmdName);
+                    // 2. Execute (pass both cmdId and cmdName)
+                    await _commandExecutor(cmdId, cmdName);
                     
                     // 3. Complete
                     await UpdateStatus(cmdId, "completed");
@@ -105,6 +105,19 @@ namespace WinEDR_MVP.Engine
             var request = new HttpRequestMessage(HttpMethod.Patch, url);
             request.Headers.Add("x-api-key", _organizationApiKey);
             
+            await _httpClient.SendAsync(request);
+        }
+
+        public async Task UpdateStatusWithResult(string cmdId, string status, string result)
+        {
+            string url = $"{_backendUrl}/api/v1/commands/{cmdId}?agent_id={_agentId}&status={status}";
+            var request = new HttpRequestMessage(HttpMethod.Patch, url);
+            request.Headers.Add("x-api-key", _organizationApiKey);
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(new { result }),
+                Encoding.UTF8,
+                "application/json"
+            );
             await _httpClient.SendAsync(request);
         }
     }

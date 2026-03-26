@@ -1,0 +1,13 @@
+{
+  "GeneratedAt": "2026-03-26T08:33:52.2801652Z",
+  "ExpectedAlertRuleIds": [
+    "HIDS-B1",
+    "NET-1",
+    "NET-10",
+    "NET-12",
+    "NET-16",
+    "NET-2",
+    "NET-4",
+    "NET-7"
+  ]
+}

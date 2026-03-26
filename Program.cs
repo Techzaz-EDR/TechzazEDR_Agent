@@ -29,6 +29,7 @@ namespace TechzazEdrWindowsAgent
             // Initialize configuration and command sync
             SetupConfig();
             InitializeCommandSync();
+            // Baseline generation removed from startup. It will be created on first reproducibility test if missing.
 
             while (true)
             {
@@ -304,14 +305,163 @@ namespace TechzazEdrWindowsAgent
             AnalysisService.Run(capturedFile, _alertManager, skipHeader: true);
         }
 
+        // ── ONE-TIME: Run a scan on reproducibility_testfiles and save the baseline ──
+        static async Task GenerateReproducibilityBaseline()
+        {
+            string testFolder = "reproducibility_testfiles";
+            string baselinePath = Path.Combine(testFolder, "baseline_results.json");
+
+            if (!Directory.Exists(testFolder)) return;
+            if (File.Exists(baselinePath))
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] REPRO: Baseline already exists at {baselinePath}. Skipping generation.");
+                return;
+            }
+
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [*] REPRO: Generating baseline from {testFolder}...");
+
+            // Use a no-dispatch AltertManager so nothing goes to the dashboard
+            var silentManager = new AlertManager("repro_baseline.log", null);
+            silentManager.SilentMode = true;
+
+            // Temporarily point untrusted paths to test folder
+            var originalPaths = _config.UntrustedExecutionPaths.ToList();
+            _config.UntrustedExecutionPaths.Clear();
+            _config.UntrustedExecutionPaths.Add(testFolder);
+
+            // var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
+            var backendUrl = "http://127.0.0.1:8000";
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId);
+            var savedAlertManager = _alertManager;
+            _alertManager = silentManager;
+            _engine = new DetectionEngine(_alertManager);
+            _engine.RegisterRule(new SystemProcessMasqueradingRule(_config));
+            _engine.RegisterRule(new SuspiciousExecutionRule(_config));
+            _engine.RegisterRule(new StartupPersistenceRule());
+            _engine.RegisterRule(new FileScannerRule(_config));
+            _engine.RegisterRule(new YaraScannerRule(_config));
+            _engine.RunCycle();
+
+            // PCAP in testfolder
+            var pcapFiles = Directory.GetFiles(testFolder, "*.pcap");
+            if (pcapFiles.Length > 0)
+                AnalysisService.Run(pcapFiles[0], silentManager, skipHeader: true);
+
+            // Collect unique RuleIds
+            var ruleIds = silentManager.GetAlerts().Select(a => a.RuleId).Distinct().OrderBy(x => x).ToList();
+
+            // Save
+            var json = JsonSerializer.Serialize(new { GeneratedAt = DateTime.UtcNow, ExpectedAlertRuleIds = ruleIds }, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(baselinePath, json);
+
+            // Restore
+            _config.UntrustedExecutionPaths.Clear();
+            foreach (var path in originalPaths) _config.UntrustedExecutionPaths.Add(path);
+            _alertManager = savedAlertManager;
+            SetupEngine(silent: false);
+
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [✓] REPRO: Baseline saved with {ruleIds.Count} expected rule IDs: [{string.Join(", ", ruleIds)}]");
+        }
+
+        // ── REPRODUCIBILITY TEST: compare live scan results vs baseline ──
+        static async Task RunReproducibilityTest(string cmdId)
+        {
+            string testFolder = "reproducibility_testfiles";
+            string baselinePath = Path.Combine(testFolder, "baseline_results.json");
+
+            if (!Directory.Exists(testFolder))
+            {
+                Console.WriteLine($"[Reproducibility] Error: Folder {testFolder} not found.");
+                return;
+            }
+
+            if (!File.Exists(baselinePath))
+            {
+                Console.WriteLine($"[Reproducibility] No baseline found. Generating now...");
+                await GenerateReproducibilityBaseline();
+            }
+
+            Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] [*] STARTING REPRODUCIBILITY TEST...");
+
+            // Use a no-dispatch AlertManager — nothing goes to the dashboard
+            var silentManager = new AlertManager("repro_test.log", null);
+            silentManager.SilentMode = true;
+
+            var originalPaths = _config.UntrustedExecutionPaths.ToList();
+            _config.UntrustedExecutionPaths.Clear();
+            _config.UntrustedExecutionPaths.Add(testFolder);
+
+            var savedAlertManager = _alertManager;
+            _alertManager = silentManager;
+            _engine = new DetectionEngine(_alertManager);
+            _engine.RegisterRule(new SystemProcessMasqueradingRule(_config));
+            _engine.RegisterRule(new SuspiciousExecutionRule(_config));
+            _engine.RegisterRule(new StartupPersistenceRule());
+            _engine.RegisterRule(new FileScannerRule(_config));
+            _engine.RegisterRule(new YaraScannerRule(_config));
+
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] SCANNING: {testFolder}...");
+            _engine.RunCycle();
+
+            var pcapFiles = Directory.GetFiles(testFolder, "*.pcap");
+            if (pcapFiles.Length > 0)
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] ANALYZING: {Path.GetFileName(pcapFiles[0])}...");
+                AnalysisService.Run(pcapFiles[0], silentManager, skipHeader: true);
+            }
+
+            // Restore original context
+            _config.UntrustedExecutionPaths.Clear();
+            foreach (var path in originalPaths) _config.UntrustedExecutionPaths.Add(path);
+            _alertManager = savedAlertManager;
+            SetupEngine(silent: false);
+
+            // Compare with baseline
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] COMPARING: Alerts with baseline...");
+            var generatedIds = silentManager.GetAlerts().Select(a => a.RuleId).Distinct().ToList();
+
+            int totalExpected = 0;
+            int matched = 0;
+
+            try {
+                var jsonText = File.ReadAllText(baselinePath);
+                var baseline = JsonSerializer.Deserialize<JsonElement>(jsonText);
+                var expectedIds = baseline.GetProperty("ExpectedAlertRuleIds").EnumerateArray()
+                                          .Select(x => x.GetString()).ToList();
+                totalExpected = expectedIds.Count;
+                foreach (var id in expectedIds)
+                    if (id != null && generatedIds.Contains(id)) matched++;
+            } catch (Exception ex) {
+                Console.WriteLine($"[Reproducibility] Error reading baseline: {ex.Message}");
+            }
+
+            double percentage = totalExpected > 0 ? (double)matched / totalExpected * 100 : 0;
+
+            // Print report
+            Console.WriteLine("\n" + new string('-', 40));
+            Console.WriteLine("       REPRODUCIBILITY TEST REPORT        ");
+            Console.WriteLine(new string('-', 40));
+            Console.WriteLine($"Generated Alert IDs : [{string.Join(", ", generatedIds)}]");
+            Console.WriteLine($"Matched Rule IDs    : {matched} / {totalExpected}");
+            Console.ForegroundColor = percentage >= 100 ? ConsoleColor.Green : (percentage >= 50 ? ConsoleColor.Yellow : ConsoleColor.Red);
+            Console.WriteLine($"MATCHINGNESS SCORE  : {percentage:F1}%");
+            Console.ResetColor();
+            Console.WriteLine(new string('-', 40));
+
+            // Patch the score back to the command document (visible in dashboard)
+            string scoreResult = $"{percentage:F1}% ({matched}/{totalExpected})";
+            await _commandService.UpdateStatusWithResult(cmdId, "completed", scoreResult);
+        }
+
         private static void InitializeCommandSync()
         {
-            var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
+            // var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
+            var backendUrl = "http://127.0.0.1:8000";
             _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, ExecuteRemoteCommand);
             _commandService.Start();
         }
 
-        private static async Task ExecuteRemoteCommand(string command)
+        private static async Task ExecuteRemoteCommand(string cmdId, string command)
         {
             switch (command.ToLower())
             {
@@ -329,6 +479,9 @@ namespace TechzazEdrWindowsAgent
                 case "remote_scan":
                     await RunBothAtOnce();
                     break;
+                case "run_test_scan":
+                    await RunReproducibilityTest(cmdId);
+                    return; // Score already patched in the method, skip dispatch summary below
                 case "update_config":
                     SetupConfig();
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [✓] CONFIG: Reloaded configuration.");
