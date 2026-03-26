@@ -18,6 +18,7 @@ namespace WinEDR_MVP.Engine
         public int FailureCount { get; private set; } = 0;
 
         public bool SilentMode { get; set; } = false;
+        public AlertDispatcher? Dispatcher => _dispatcher;
 
         public event Action<Alert>? OnAlert;
 

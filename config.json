@@ -6,7 +6,8 @@
   "UntrustedExecutionPaths": [
     "%USERPROFILE%\\Downloads",
     "%USERPROFILE%\\AppData\\Local\\Temp",
-    "%USERPROFILE%\\Desktop"
+    "%USERPROFILE%\\Desktop",
+    "TestFiles"
   ],
   "ProcessPathExpectations": {
     "svchost.exe": [
