@@ -1,7 +1,7 @@
-﻿{
-  "AgentId": "01206300-8f42-486b-8a87-ada31ebdffc2",
-  "AgentName": "INUKA-VIVOBOOKP",
+{
   "OrganizationApiKey": "tz_demo_d3m00rgk3y",
+  "AgentId": "INUKA-VIVOBOOKP",
+  "AgentName": "INUKA-VIVOBOOKP",
   "TrustedSystemProcesses": [],
   "TrustedExecutionPaths": [],
   "UntrustedExecutionPaths": [

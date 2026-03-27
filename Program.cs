@@ -393,9 +393,11 @@ namespace TechzazEdrWindowsAgent
             Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] [*] STARTING REPRODUCIBILITY TEST...");
             if (await IsCancelled(cmdId)) return;
 
-            // Use a no-dispatch AlertManager — nothing goes to the dashboard
-            var silentManager = new AlertManager("repro_test.log", null);
-            silentManager.SilentMode = true;
+            // Use an AlertManager that dispatches alerts to the dashboard
+            var backendUrl = ResolveBackendUrl();
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName);
+            var silentManager = new AlertManager("repro_test.log", dispatcher);
+            silentManager.SilentMode = true; // Prevent console spam, but allow network dispatch
 
             var originalPaths = _config.UntrustedExecutionPaths.ToList();
             _config.UntrustedExecutionPaths.Clear();
@@ -491,7 +493,7 @@ namespace TechzazEdrWindowsAgent
 
         private static string ResolveBackendUrl()
         {
-            const string local = "http://localhost:8000";
+            const string local = "http://127.0.0.1:8000";
             const string remote = "https://techzazedrdashboard-backend-production.up.railway.app";
 
             try
