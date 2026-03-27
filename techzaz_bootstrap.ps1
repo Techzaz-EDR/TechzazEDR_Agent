@@ -1,6 +1,9 @@
-﻿{
-  "AgentId": "01206300-8f42-486b-8a87-ada31ebdffc2",
-  "AgentName": "INUKA-VIVOBOOKP",
+$generatedId = if ("GENERIC" -eq "GENERIC" -or "GENERIC" -eq "") { [System.Guid]::NewGuid().ToString() } else { "GENERIC" }
+$computerName = $env:COMPUTERNAME
+$jsonConfig = @"
+{
+  "AgentId": "$generatedId",
+  "AgentName": "$computerName",
   "OrganizationApiKey": "tz_demo_d3m00rgk3y",
   "TrustedSystemProcesses": [],
   "TrustedExecutionPaths": [],
@@ -114,3 +117,12 @@
   "NetworkScanWindowSeconds": 30,
   "YaraRulesPath": "Rules\\Yara"
 }
+"@
+
+Set-Content -Path "config.json" -Value $jsonConfig -Encoding utf8
+Write-Host "----------------------------------------------------" -ForegroundColor Green
+Write-Host "TechzazEDR Agent Bootstrapped Successfully!" -ForegroundColor Green
+Write-Host "Agent ID:   $generatedId"
+Write-Host "Agent Name: $computerName"
+Write-Host "Config saved to: $(Get-Location)\config.json"
+Write-Host "----------------------------------------------------"

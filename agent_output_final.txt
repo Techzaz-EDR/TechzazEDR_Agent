@@ -1,0 +1,298 @@
+
+========================================
+       TECHZAZEDR WINDOWS AGENT        
+========================================
+1. Integrated Analysis (System Scan + PCAP File)
+2. Live Security Analyzer (System Scan + Live Capture)
+3. Exit
+
+Select an option (1-3): [00:23:25] [i] SYNC: Command polling service started for Agent: 01206300-8f42-486b-8a87-ada31ebdffc2
+[00:23:40] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+
+[00:24:11] [!] COMMAND RECEIVED: run_remote_scan (ID: wFFhwvpKDLEpVAqj4qmo)
+[00:24:12] [*] INITIALIZING: Simultaneous Live Capture & System Scan...
+Scanning Network Devices...
+Automatically selected device: \Device\NPF_{EC7CA4BB-EB9C-4338-BE6D-841843A8E41B} - Intel(R) Wi-Fi 6E AX211 160MHz
+Capture will be saved to: D:\Documents\GitHub\TechzazEDR_Agent\pcap\60snetcapture.pcap
+Recording started...
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\02d59d13-3a13-4cde-b646-ddf5c4b9eb8d.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\02e80a46-523c-4269-8b6f-422d79130584.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\0364d0d5-89f8-4810-affe-60693ed843dd.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\09b5418a-4ef3-4d80-b39c-2d9e2ad7f0ef.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\13721507-23d0-442a-9d0a-6d0e6e19eb68.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\14e65fc5-2d12-41d5-a6d9-4ce43b49e6c9.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\1872bd7a-e6ca-4607-8dd0-9f797acd2ecb.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\193951e7-180f-45ca-a2cd-e78766155148.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\1a88f2cf-c322-47b8-b263-8b27a5cae789.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\1bb274dd-f9eb-41a1-8f0f-b2674f182de9.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\1ef7abe4-ac67-44e8-9ddc-fdd598aa1192.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\2212c776-2c9a-4f76-98d3-e763fc8887a2.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\285469c1-22cb-4d0e-8a79-7e48d0fa7bff.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\2b6b4e7a-9918-4d82-9600-1599e62a7ab6.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\29f400c5-f612-4a01-92f9-b87ae35e3461.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\344d5947-5385-4890-89af-2301c880b473.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\3f6caa20-77a3-46d1-b18f-549282668bfa.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\46522ada-ac6e-4268-befb-892a58562bbb.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\4919e7a6-f9d2-47c5-9f7c-66c8a99facbf.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\4ca7a633-3cb9-4aaa-94df-d26a015291bd.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\51c98e47-d72e-46e8-beb6-4c6478bb8578.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\553f7f35-33d3-4a83-8647-8fc563902fbf.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\5b84fc0a-efd9-4225-8740-fe2837186f2a.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\65fc447c-3500-4242-9066-1eea8cecb8cb.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\69bd2bc1-4cc2-4635-b2a6-3a4f185956be.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\6c338fef-1265-457e-b494-910b390dbf52.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\7309611c-502e-429a-a733-6adfd11c0a0c.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\741d7027-38a9-41a3-a6e3-7908dbed5588.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\78ed705a-491d-4a7d-86e6-4d8ce648cb3d.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\79043663-7c42-47d3-9366-f6a8e5022caa.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\7ebd3302-0e93-4093-a130-de4319c7085f.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\838dbaad-19c5-46db-8955-8a9ee51af087.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\836f9b35-b24f-4cda-95b4-4998066da357.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\88519b49-7c10-496b-8356-779395c2cde0.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\92096038-1984-4ca8-96a7-de958ea95394.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\985dbc42-cb5f-4c0a-bce2-3a868d88adfd.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\99163a5e-873b-4ab4-8486-e4ae1eccb789.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\b2d21282-9f8e-4979-ab29-33f1d9082d92.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\bdc8139e-b3a9-4d84-8820-9e09827be6f1.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\bf269b10-9417-46b0-8ddb-42c9f3485f47.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\bf85ac00-58f6-47e3-8852-60d12a3e236b.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\c01c70ad-85ff-40bf-bf49-8ecd8eb327f2.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\c045f331-3015-43e4-abb5-3445a6531967.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\c46482d7-00c3-45b5-9389-d50846e738a7.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\c861f4ec-3a48-44b4-833d-80ba97d36f99.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\c89efa52-9d8a-4629-a40d-5076ab66d72c.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\d1fefe5e-1434-4a62-82b9-534621388b30.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\d43ebb13-87cf-48fb-b2d0-3425f7d0b471.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\daba4419-b2e9-4877-bb9e-24ba5feb8895.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\dacca571-230d-416f-aa33-7feee3cbd045.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\dc9d0d1e-fc85-43c7-ae0d-28f7c280f21f.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\dd9785a9-be2f-45b6-9000-a1420cf436e9.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\e043ec2e-e32c-41e4-bd3e-23e3d87d81ef.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\ecedffb0-ba6c-49a5-817d-7340a8f3f418.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\ed589c53-3513-4285-8740-1dc4072d7caa.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\f3cad2eb-a812-4315-8d02-4386bf3c6d7b.tmp: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\remoteIpMoProxy_MicrosoftPowerShellManagement_3.1.0.0_localhost_796017e0-1e2a-44b3-bec4-041560e5160f\remoteIpMoProxy_MicrosoftPowerShellManagement_3.1.0.0_localhost_796017e0-1e2a-44b3-bec4-041560e5160f.format.ps1xml??░: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\remoteIpMoProxy_MicrosoftPowerShellManagement_3.1.0.0_localhost_b36019be-6116-4ca9-8cc0-5a1ebd03077f\remoteIpMoProxy_MicrosoftPowerShellManagement_3.1.0.0_localhost_b36019be-6116-4ca9-8cc0-5a1ebd03077f.format.ps1xml??░: could not open file
+error scanning C:\Users\Inuka Wijerathna\AppData\Local\Temp\remoteIpMoProxy_MicrosoftPowerShellManagement_3.1.0.0_localhost_b84413c4-2fcf-4138-ba3b-b611ccd139a5\remoteIpMoProxy_MicrosoftPowerShellManagement_3.1.0.0_localhost_b84413c4-2fcf-4138-ba3b-b611ccd139a5.format.ps1xml??░: could not open file
+[00:24:26] [i] WAITING: Finalizing Network Capture (60s total)...
+Capture successfully saved to: D:\Documents\GitHub\TechzazEDR_Agent\pcap\60snetcapture.pcap
+
+============================================================
+             COMBINED SECURITY ANALYSIS REPORT             
+============================================================
+
+--- 1. SYSTEM PROCESS & FILE SCAN RESULTS ---
+---------------------------------------------------------------------------
+[00:25:54] [!] ALERT: MAL (Medium)
+               Name: Suspicious Startup Item
+               Path: N/A
+               Reason: Registry Persistence found in SOFTWARE\Microsoft\Windows\CurrentVersion\Run: Teams -> "C:\Users\Inuka Wijerathna\AppData\Local\Microsoft\WindowsApps\MSTeams_8wekyb3d8bbwe\ms-teams.exe" msteams:system-initiated
+---------------------------------------------------------------------------
+---------------------------------------------------------------------------
+[00:25:54] [!] ALERT: MAL (Medium)
+               Name: Suspicious Startup Item
+               Path: N/A
+               Reason: Registry Persistence found in SOFTWARE\Microsoft\Windows\CurrentVersion\Run: Figma Agent -> "C:\Users\Inuka Wijerathna\AppData\Local\FigmaAgent\figma_agent.exe"
+---------------------------------------------------------------------------
+---------------------------------------------------------------------------
+[00:25:54] [!] ALERT: MAL (High)
+               Name: YARA Match: TestMalwareRule
+               Path: C:\Users\Inuka Wijerathna\AppData\Local\Temp\test_malware.txt
+               Reason: File matched YARA rule 'TestMalwareRule': test_malware.txt
+---------------------------------------------------------------------------
+
+--- 2. NETWORK PCAP ANALYSIS RESULTS ---
+Total Packets Processed: 13806
+Detection Window: 60 Seconds
+------------------------------------------------------------
+[NET-1] Port Scanning Detected
+   Source: 192.168.1.1
+   Details: Unique Ports: 53
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.1
+   Details: MAC changed from 04208443E6B4 to 04208443E6B4
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.4
+   Details: MAC changed from F8FE5E18106E to F8FE5E18106E
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.104
+   Details: MAC changed from 08A189C12A77 to 08A189C12A77
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.101
+   Details: MAC changed from 083BC1D04992 to 083BC1D04992
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.103
+   Details: MAC changed from 083BC1D04A85 to 083BC1D04A85
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.102
+   Details: MAC changed from 08A189C129CB to 08A189C129CB
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.106
+   Details: MAC changed from 08A189C12AE1 to 08A189C12AE1
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.105
+   Details: MAC changed from 08A189C12A3C to 08A189C12A3C
+
+[NET-11] ARP Spoofing Detected
+   Source: 192.168.1.107
+   Details: MAC changed from 2CA59C30BDE6 to 2CA59C30BDE6
+
+[NET-16] TTL Anomaly Detected
+   Source: 192.168.1.4
+   Details: Large TTL Fluctuations: 8
+
+[NET-7] Suspicious DNS / DGA Pattern
+   Source: 192.168.1.4
+   Details: Unique Domains: 7, NX Rate: 0.00%
+
+[NET-7] Suspicious DNS / DGA Pattern
+   Source: 192.168.1.1
+   Details: Unique Domains: 7, NX Rate: 0.00%
+
+============================================================
+
+[00:25:56] [Γ£ô] SYNC: Successfully dispatched 16 alerts to dashboard.
+[00:25:57] [Γ£ô] COMMAND COMPLETE: run_remote_scan
+[00:26:16] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:26:44] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:26:56] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:27:17] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:27:44] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:28:58] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:29:26] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:30:32] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:31:08] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:31:28] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:31:41] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:31:54] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:32:08] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:32:28] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:32:42] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:34:24] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:34:54] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:35:52] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:36:39] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:36:59] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:37:12] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:38:24] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:38:45] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:39:28] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:39:40] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:40:16] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:40:29] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:41:25] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:41:46] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:42:14] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:42:26] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:43:17] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:43:30] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:43:43] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:43:56] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:46:32] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:46:45] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:46:58] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:47:26] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:47:54] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:48:52] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:49:28] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:49:56] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:51:33] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:53:13] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:54:45] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:55:39] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:56:30] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:56:43] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:57:44] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:58:13] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[00:58:58] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:59:43] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[00:59:56] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[01:01:05] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:01:34] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:02:27] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[01:03:04] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:03:17] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:03:30] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An established connection was aborted by the software in your host machine..
+[01:03:52] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:04:05] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:04:18] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:05:03] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:05:41] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:06:02] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..
+[01:06:57] [X] POLL ERROR: HttpRequestException - An error occurred while sending the request.
+               Inner: Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host..

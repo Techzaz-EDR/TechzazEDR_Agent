@@ -1,5 +1,9 @@
 using System;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -15,6 +19,8 @@ namespace WinEDR_MVP.Engine
         private readonly string _organizationApiKey;
         private readonly string _agentId;
         private readonly string _agentName;
+        private readonly string _localIp;
+        private readonly string _osVersion;
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
         public AlertDispatcher(string backendUrl, string organizationApiKey, string agentId, string agentName)
@@ -22,8 +28,27 @@ namespace WinEDR_MVP.Engine
             _httpClient = new HttpClient();
             _backendUrl = backendUrl.TrimEnd('/');
             _organizationApiKey = organizationApiKey;
-            _agentId = agentId; 
+            _agentId = agentId;
             _agentName = agentName;
+            _localIp = GetLocalIpAddress();
+            _osVersion = GetOsVersion();
+        }
+
+        private static string GetLocalIpAddress()
+        {
+            try
+            {
+                var host = Dns.GetHostEntry(Dns.GetHostName());
+                var ip = host.AddressList.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a));
+                return ip?.ToString() ?? "0.0.0.0";
+            }
+            catch { return "0.0.0.0"; }
+        }
+
+        private static string GetOsVersion()
+        {
+            try { return RuntimeInformation.OSDescription; }
+            catch { return "Unknown OS"; }
         }
 
         public void Stop()
@@ -53,8 +78,8 @@ namespace WinEDR_MVP.Engine
                 var jsonPayload = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
                 var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                // Route to /api/v1/alerts?agent_id=...&agent_name=...
-                string url = $"{_backendUrl}/api/v1/alerts?agent_id={_agentId}&agent_name={Uri.EscapeDataString(_agentName)}";
+                // Route to /api/v1/alerts?agent_id=...&agent_name=...&agent_ip=...&agent_os=...
+                string url = $"{_backendUrl}/api/v1/alerts?agent_id={_agentId}&agent_name={Uri.EscapeDataString(_agentName)}&agent_ip={Uri.EscapeDataString(_localIp)}&agent_os={Uri.EscapeDataString(_osVersion)}";
                 
                 // Initialize http request
                 var request = new HttpRequestMessage(HttpMethod.Post, url);
@@ -70,8 +95,9 @@ namespace WinEDR_MVP.Engine
                 // Dispatch was cancelled, return false
                 return false;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [X] DISPATCH ERROR: {ex.Message}");
                 return false;
             }
         }

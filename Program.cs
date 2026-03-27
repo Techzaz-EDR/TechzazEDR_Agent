@@ -116,7 +116,7 @@ namespace TechzazEdrWindowsAgent
         static void SetupEngine(bool silent)
         {
             // Initialize the dispatcher to send alerts to the backend
-            var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app"; // Can be moved to AppConfig if desired
+            var backendUrl = ResolveBackendUrl();
             var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName);
 
             _alertManager = new AlertManager("alerts.log", dispatcher);
@@ -339,8 +339,8 @@ namespace TechzazEdrWindowsAgent
             _config.UntrustedExecutionPaths.Add(testFolder);
 
             // var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
-            var backendUrl = "http://127.0.0.1:8000";
-            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId);
+            var backendUrl = "http://localhost:8000";
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName);
             var savedAlertManager = _alertManager;
             _alertManager = silentManager;
             _engine = new DetectionEngine(_alertManager);
@@ -484,10 +484,34 @@ namespace TechzazEdrWindowsAgent
 
         private static void InitializeCommandSync()
         {
-            // var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
-            var backendUrl = "http://127.0.0.1:8000";
+            var backendUrl = ResolveBackendUrl();
             _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName, ExecuteRemoteCommand);
             _commandService.Start();
+        }
+
+        private static string ResolveBackendUrl()
+        {
+            const string local = "http://localhost:8000";
+            const string remote = "https://techzazedrdashboard-backend-production.up.railway.app";
+
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                client.Timeout = TimeSpan.FromSeconds(2);
+                var resp = client.GetAsync(local + "/health").GetAwaiter().GetResult();
+                if (resp.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] BACKEND: Using local server ({local})");
+                    return local;
+                }
+            }
+            catch
+            {
+                // local backend is unreachable
+            }
+
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] BACKEND: Local unavailable, using Railway ({remote})");
+            return remote;
         }
 
         private static async Task ExecuteRemoteCommand(string cmdId, string command)
