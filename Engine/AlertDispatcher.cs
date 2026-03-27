@@ -14,14 +14,16 @@ namespace WinEDR_MVP.Engine
         private readonly string _backendUrl;
         private readonly string _organizationApiKey;
         private readonly string _agentId;
+        private readonly string _agentName;
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public AlertDispatcher(string backendUrl, string organizationApiKey, string agentId)
+        public AlertDispatcher(string backendUrl, string organizationApiKey, string agentId, string agentName)
         {
             _httpClient = new HttpClient();
             _backendUrl = backendUrl.TrimEnd('/');
             _organizationApiKey = organizationApiKey;
             _agentId = agentId; 
+            _agentName = agentName;
         }
 
         public void Stop()
@@ -51,8 +53,8 @@ namespace WinEDR_MVP.Engine
                 var jsonPayload = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
                 var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                // Route to /api/v1/alerts?agent_id=...
-                string url = $"{_backendUrl}/api/v1/alerts?agent_id={_agentId}";
+                // Route to /api/v1/alerts?agent_id=...&agent_name=...
+                string url = $"{_backendUrl}/api/v1/alerts?agent_id={_agentId}&agent_name={Uri.EscapeDataString(_agentName)}";
                 
                 // Initialize http request
                 var request = new HttpRequestMessage(HttpMethod.Post, url);

@@ -117,7 +117,7 @@ namespace TechzazEdrWindowsAgent
         {
             // Initialize the dispatcher to send alerts to the backend
             var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app"; // Can be moved to AppConfig if desired
-            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId);
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName);
 
             _alertManager = new AlertManager("alerts.log", dispatcher);
             _alertManager.SilentMode = silent;
@@ -486,7 +486,7 @@ namespace TechzazEdrWindowsAgent
         {
             // var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
             var backendUrl = "http://127.0.0.1:8000";
-            _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, ExecuteRemoteCommand);
+            _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName, ExecuteRemoteCommand);
             _commandService.Start();
         }
 

@@ -8,6 +8,7 @@ namespace WinEDR_MVP.Config
     {
         public string OrganizationApiKey { get; set; } = "tz_demo_d3m00rgk3y"; // Default API Key (DemoOrg)
         public string AgentId { get; set; } = Environment.MachineName; 
+        public string AgentName { get; set; } = Environment.MachineName; 
         public List<string> TrustedSystemProcesses { get; set; } = new List<string>();
         public List<string> TrustedExecutionPaths { get; set; } = new List<string>();
         public List<string> UntrustedExecutionPaths { get; set; } = new List<string>();

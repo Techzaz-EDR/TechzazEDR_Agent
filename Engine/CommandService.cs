@@ -14,15 +14,17 @@ namespace WinEDR_MVP.Engine
         private readonly string _backendUrl;
         private readonly string _organizationApiKey;
         private readonly string _agentId;
+        private readonly string _agentName;
         private readonly Func<string, string, Task> _commandExecutor;
         private bool _isRunning;
 
-        public CommandService(string backendUrl, string organizationApiKey, string agentId, Func<string, string, Task> commandExecutor)
+        public CommandService(string backendUrl, string organizationApiKey, string agentId, string agentName, Func<string, string, Task> commandExecutor)
         {
             _httpClient = new HttpClient();
             _backendUrl = backendUrl.TrimEnd('/');
             _organizationApiKey = organizationApiKey;
             _agentId = agentId;
+            _agentName = agentName;
             _commandExecutor = commandExecutor;
         }
 
@@ -60,7 +62,7 @@ namespace WinEDR_MVP.Engine
 
         private async Task PollAndExecute()
         {
-            string url = $"{_backendUrl}/api/v1/commands/poll?agent_id={_agentId}";
+            string url = $"{_backendUrl}/api/v1/commands/poll?agent_id={_agentId}&agent_name={Uri.EscapeDataString(_agentName)}";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Add("x-api-key", _organizationApiKey);
 
