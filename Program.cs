@@ -111,6 +111,20 @@ namespace TechzazEdrWindowsAgent
                 CreateDefaultConfig(configPath);
             }
             _config = AppConfig.Load(configPath);
+
+            // Migrate legacy machine-name AgentId to a stable UUID.
+            // agent_id  = internal Firestore key (never shown to users, never changes)
+            // agent_name = display label (shown in dashboard, can be renamed by admin)
+            if (!IsValidGuid(_config.AgentId))
+            {
+                // Preserve the old machine-name value as the display name if AgentName not set separately
+                if (string.IsNullOrWhiteSpace(_config.AgentName) || _config.AgentName == _config.AgentId)
+                    _config.AgentName = _config.AgentId; // keep e.g. "INUKA-VIVOBOOKP" as display name
+
+                _config.AgentId = Guid.NewGuid().ToString();
+                SaveConfig(configPath, _config);
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] CONFIG: Migrated AgentId to stable UUID. Display name: {_config.AgentName}");
+            }
         }
 
         static void SetupEngine(bool silent)
@@ -194,6 +208,16 @@ namespace TechzazEdrWindowsAgent
         {
             if (!dict.ContainsKey(process)) dict[process] = new List<string>();
             if (!dict[process].Contains(path)) dict[process].Add(path);
+        }
+
+        /// <summary>Returns true if value is a well-formed UUID/GUID.</summary>
+        static bool IsValidGuid(string value) => Guid.TryParse(value, out _);
+
+        /// <summary>Persists the current config back to disk.</summary>
+        static void SaveConfig(string path, AppConfig config)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            File.WriteAllText(path, JsonSerializer.Serialize(config, options));
         }
 
         // --- PCAP Analyzer Integration ---

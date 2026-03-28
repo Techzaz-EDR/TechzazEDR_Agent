@@ -26,7 +26,15 @@ namespace WinEDR_MVP.Engine
 
         public CommandService(string backendUrl, string organizationApiKey, string agentId, string agentName, Func<string, string, Task> commandExecutor)
         {
-            _httpClient = new HttpClient();
+            // SocketsHttpHandler with PooledConnectionLifetime prevents the "stale keep-alive"
+            // bug: Uvicorn closes idle connections after ~5s, but the default HttpClient holds
+            // the dead socket in its pool and reuses it → "connection aborted" on every poll.
+            // Retiring connections every 30s ensures a fresh TCP handshake well within that window.
+            _httpClient = new HttpClient(new SocketsHttpHandler
+            {
+                PooledConnectionLifetime    = TimeSpan.FromSeconds(30),
+                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(10)
+            });
             _backendUrl = backendUrl.TrimEnd('/');
             _organizationApiKey = organizationApiKey;
             _agentId = agentId;
