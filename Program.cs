@@ -511,7 +511,13 @@ namespace TechzazEdrWindowsAgent
         private static void InitializeCommandSync()
         {
             var backendUrl = ResolveBackendUrl();
-            _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName, ExecuteRemoteCommand);
+            _commandService = new CommandService(
+                backendUrl,
+                _config.OrganizationApiKey,
+                _config.AgentId,
+                _config.AgentName,
+                (cmdId, command, parameters) => ExecuteRemoteCommand(cmdId, command, parameters)
+            );
             _commandService.Start();
         }
 
@@ -540,7 +546,7 @@ namespace TechzazEdrWindowsAgent
             return remote;
         }
 
-        private static async Task ExecuteRemoteCommand(string cmdId, string command)
+        private static async Task ExecuteRemoteCommand(string cmdId, string command, Dictionary<string, System.Text.Json.JsonElement> parameters)
         {
             switch (command.ToLower())
             {
@@ -564,6 +570,26 @@ namespace TechzazEdrWindowsAgent
                 case "update_config":
                     SetupConfig();
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [✓] CONFIG: Reloaded configuration.");
+                    break;
+                case "update_agent_name":
+                    if (parameters.TryGetValue("agent_name", out var nameEl))
+                    {
+                        string newName = nameEl.GetString() ?? string.Empty;
+                        if (!string.IsNullOrWhiteSpace(newName))
+                        {
+                            _config.AgentName = newName;
+                            SaveConfig("config.json", _config);
+                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [✓] CONFIG: Agent name updated to '{newName}' and saved to config.json.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [!] CONFIG: update_agent_name received empty name — ignored.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [!] CONFIG: update_agent_name missing 'agent_name' parameter.");
+                    }
                     break;
                 default:
                     throw new Exception($"Unknown command: {command}");

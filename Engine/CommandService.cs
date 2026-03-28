@@ -21,10 +21,10 @@ namespace WinEDR_MVP.Engine
         private readonly string _agentName;
         private readonly string _localIp;
         private readonly string _osVersion;
-        private readonly Func<string, string, Task> _commandExecutor;
+        private readonly Func<string, string, Dictionary<string, JsonElement>, Task> _commandExecutor;
         private bool _isRunning;
 
-        public CommandService(string backendUrl, string organizationApiKey, string agentId, string agentName, Func<string, string, Task> commandExecutor)
+        public CommandService(string backendUrl, string organizationApiKey, string agentId, string agentName, Func<string, string, Dictionary<string, JsonElement>, Task> commandExecutor)
         {
             // SocketsHttpHandler with PooledConnectionLifetime prevents the "stale keep-alive"
             // bug: Uvicorn closes idle connections after ~5s, but the default HttpClient holds
@@ -117,6 +117,14 @@ namespace WinEDR_MVP.Engine
                 string cmdId = cmd.GetProperty("id").GetString()!;
                 string cmdName = cmd.GetProperty("command").GetString()!;
 
+                // Extract optional parameters map (may be absent or null)
+                var parameters = new Dictionary<string, JsonElement>();
+                if (cmd.TryGetProperty("parameters", out var paramsEl) && paramsEl.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var prop in paramsEl.EnumerateObject())
+                        parameters[prop.Name] = prop.Value;
+                }
+
                 Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] [!] COMMAND RECEIVED: {cmdName} (ID: {cmdId})");
                 
                 // 1. Acknowledge
@@ -124,8 +132,8 @@ namespace WinEDR_MVP.Engine
 
                 try
                 {
-                    // 2. Execute (pass both cmdId and cmdName)
-                    await _commandExecutor(cmdId, cmdName);
+                    // 2. Execute (pass cmdId, cmdName, and parameters)
+                    await _commandExecutor(cmdId, cmdName, parameters);
                     
                     // 3. Complete
                     await UpdateStatus(cmdId, "completed");
