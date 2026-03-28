@@ -111,13 +111,27 @@ namespace TechzazEdrWindowsAgent
                 CreateDefaultConfig(configPath);
             }
             _config = AppConfig.Load(configPath);
+
+            // Migrate legacy machine-name AgentId to a stable UUID.
+            // agent_id  = internal Firestore key (never shown to users, never changes)
+            // agent_name = display label (shown in dashboard, can be renamed by admin)
+            if (!IsValidGuid(_config.AgentId))
+            {
+                // Preserve the old machine-name value as the display name if AgentName not set separately
+                if (string.IsNullOrWhiteSpace(_config.AgentName) || _config.AgentName == _config.AgentId)
+                    _config.AgentName = _config.AgentId; // keep e.g. "INUKA-VIVOBOOKP" as display name
+
+                _config.AgentId = Guid.NewGuid().ToString();
+                SaveConfig(configPath, _config);
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] CONFIG: Migrated AgentId to stable UUID. Display name: {_config.AgentName}");
+            }
         }
 
         static void SetupEngine(bool silent)
         {
             // Initialize the dispatcher to send alerts to the backend
-            var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app"; // Can be moved to AppConfig if desired
-            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId);
+            var backendUrl = ResolveBackendUrl();
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName);
 
             _alertManager = new AlertManager("alerts.log", dispatcher);
             _alertManager.SilentMode = silent;
@@ -194,6 +208,16 @@ namespace TechzazEdrWindowsAgent
         {
             if (!dict.ContainsKey(process)) dict[process] = new List<string>();
             if (!dict[process].Contains(path)) dict[process].Add(path);
+        }
+
+        /// <summary>Returns true if value is a well-formed UUID/GUID.</summary>
+        static bool IsValidGuid(string value) => Guid.TryParse(value, out _);
+
+        /// <summary>Persists the current config back to disk.</summary>
+        static void SaveConfig(string path, AppConfig config)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            File.WriteAllText(path, JsonSerializer.Serialize(config, options));
         }
 
         // --- PCAP Analyzer Integration ---
@@ -339,8 +363,8 @@ namespace TechzazEdrWindowsAgent
             _config.UntrustedExecutionPaths.Add(testFolder);
 
             // var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
-            var backendUrl = "http://127.0.0.1:8000";
-            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId);
+            var backendUrl = "http://localhost:8000";
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName);
             var savedAlertManager = _alertManager;
             _alertManager = silentManager;
             _engine = new DetectionEngine(_alertManager);
@@ -393,9 +417,11 @@ namespace TechzazEdrWindowsAgent
             Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] [*] STARTING REPRODUCIBILITY TEST...");
             if (await IsCancelled(cmdId)) return;
 
-            // Use a no-dispatch AlertManager — nothing goes to the dashboard
-            var silentManager = new AlertManager("repro_test.log", null);
-            silentManager.SilentMode = true;
+            // Use an AlertManager that dispatches alerts to the dashboard
+            var backendUrl = ResolveBackendUrl();
+            var dispatcher = new AlertDispatcher(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName);
+            var silentManager = new AlertManager("repro_test.log", dispatcher);
+            silentManager.SilentMode = true; // Prevent console spam, but allow network dispatch
 
             var originalPaths = _config.UntrustedExecutionPaths.ToList();
             _config.UntrustedExecutionPaths.Clear();
@@ -484,10 +510,34 @@ namespace TechzazEdrWindowsAgent
 
         private static void InitializeCommandSync()
         {
-            // var backendUrl = "https://techzazedrdashboard-backend-production.up.railway.app";
-            var backendUrl = "http://127.0.0.1:8000";
-            _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, ExecuteRemoteCommand);
+            var backendUrl = ResolveBackendUrl();
+            _commandService = new CommandService(backendUrl, _config.OrganizationApiKey, _config.AgentId, _config.AgentName, ExecuteRemoteCommand);
             _commandService.Start();
+        }
+
+        private static string ResolveBackendUrl()
+        {
+            const string local = "http://127.0.0.1:8000";
+            const string remote = "https://techzazedrdashboard-backend-production.up.railway.app";
+
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                client.Timeout = TimeSpan.FromSeconds(2);
+                var resp = client.GetAsync(local + "/health").GetAwaiter().GetResult();
+                if (resp.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] BACKEND: Using local server ({local})");
+                    return local;
+                }
+            }
+            catch
+            {
+                // local backend is unreachable
+            }
+
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [i] BACKEND: Local unavailable, using Railway ({remote})");
+            return remote;
         }
 
         private static async Task ExecuteRemoteCommand(string cmdId, string command)

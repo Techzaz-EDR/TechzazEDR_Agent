@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -14,16 +18,50 @@ namespace WinEDR_MVP.Engine
         private readonly string _backendUrl;
         private readonly string _organizationApiKey;
         private readonly string _agentId;
+        private readonly string _agentName;
+        private readonly string _localIp;
+        private readonly string _osVersion;
         private readonly Func<string, string, Task> _commandExecutor;
         private bool _isRunning;
 
-        public CommandService(string backendUrl, string organizationApiKey, string agentId, Func<string, string, Task> commandExecutor)
+        public CommandService(string backendUrl, string organizationApiKey, string agentId, string agentName, Func<string, string, Task> commandExecutor)
         {
-            _httpClient = new HttpClient();
+            // SocketsHttpHandler with PooledConnectionLifetime prevents the "stale keep-alive"
+            // bug: Uvicorn closes idle connections after ~5s, but the default HttpClient holds
+            // the dead socket in its pool and reuses it → "connection aborted" on every poll.
+            // Retiring connections every 30s ensures a fresh TCP handshake well within that window.
+            _httpClient = new HttpClient(new SocketsHttpHandler
+            {
+                PooledConnectionLifetime    = TimeSpan.FromSeconds(30),
+                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(10)
+            });
             _backendUrl = backendUrl.TrimEnd('/');
             _organizationApiKey = organizationApiKey;
             _agentId = agentId;
+            _agentName = agentName;
             _commandExecutor = commandExecutor;
+            _localIp = GetLocalIpAddress();
+            _osVersion = GetOsVersion();
+        }
+
+        private static string GetLocalIpAddress()
+        {
+            try
+            {
+                var host = Dns.GetHostEntry(Dns.GetHostName());
+                var ip = host.AddressList.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a));
+                return ip?.ToString() ?? "0.0.0.0";
+            }
+            catch { return "0.0.0.0"; }
+        }
+
+        private static string GetOsVersion()
+        {
+            try
+            {
+                return RuntimeInformation.OSDescription;
+            }
+            catch { return "Unknown OS"; }
         }
 
         public void Start()
@@ -51,7 +89,9 @@ namespace WinEDR_MVP.Engine
                 catch (Exception ex)
                 {
                     // Silent fail to keep polling
-                    Console.WriteLine($"Poll error: {ex.Message}");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [X] POLL ERROR: {ex.GetType().Name} - {ex.Message}");
+                    if (ex.InnerException != null)
+                        Console.WriteLine($"               Inner: {ex.InnerException.Message}");
                 }
                 
                 await Task.Delay(5000); // Poll every 5 seconds
@@ -60,7 +100,7 @@ namespace WinEDR_MVP.Engine
 
         private async Task PollAndExecute()
         {
-            string url = $"{_backendUrl}/api/v1/commands/poll?agent_id={_agentId}";
+            string url = $"{_backendUrl}/api/v1/commands/poll?agent_id={_agentId}&agent_name={Uri.EscapeDataString(_agentName)}&agent_ip={Uri.EscapeDataString(_localIp)}&agent_os={Uri.EscapeDataString(_osVersion)}";
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Add("x-api-key", _organizationApiKey);
 

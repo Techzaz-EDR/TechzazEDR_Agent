@@ -14,4 +14,13 @@ obj/
 *.tmp
 *.log
 alerts.log
+repro_test.log
 pcap/*.pcap
+
+## [Build output / debug dumps]
+build_error*.txt
+build_output*.txt
+build*.log
+agent_output*.txt
+reproducibility_baseline.json
+techzaz_bootstrap.ps1
