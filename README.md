@@ -57,7 +57,13 @@ graph TD
 - **Npcap**: Required for raw network packet capture.
 - **Admin Privileges**: Required for registry and network monitoring.
 
-### Commands
+### 1. Automated Setup (Recommended)
+1. Log in to the **TechzazEDR Dashboard**.
+2. Navigate to **Endpoints** and click **Download Bootstrap Script**.
+3. Run the generated `.ps1` script as **Administrator** on the target endpoint.
+4. The agent will automatically configure itself with the correct `OrganizationApiKey` and `BackendUrl`.
+
+### 2. Manual Execution
 ```bash
 dotnet run
 ```
