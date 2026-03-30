@@ -24,6 +24,9 @@ namespace WinEDR_MVP.Engine
         private readonly Func<string, string, Dictionary<string, JsonElement>, Task> _commandExecutor;
         private bool _isRunning;
 
+        // Notification event for UI integration
+        public event Action<string>? OnCommandReceived;
+
         public CommandService(string backendUrl, string organizationApiKey, string agentId, string agentName, Func<string, string, Dictionary<string, JsonElement>, Task> commandExecutor)
         {
             // SocketsHttpHandler with PooledConnectionLifetime prevents the "stale keep-alive"
@@ -126,6 +129,7 @@ namespace WinEDR_MVP.Engine
                 }
 
                 Console.WriteLine($"\n[{DateTime.Now:HH:mm:ss}] [!] COMMAND RECEIVED: {cmdName} (ID: {cmdId})");
+                OnCommandReceived?.Invoke(cmdName);
                 
                 // 1. Acknowledge
                 await UpdateStatus(cmdId, "executing");

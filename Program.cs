@@ -9,6 +9,11 @@ using WinEDR_MVP.Rules.HIDS;
 using WinEDR_MVP.Rules.Malware;
 using System.Text.Json;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using Application = System.Windows.Forms.Application;
+using System.Text;
+using Microsoft.Win32.SafeHandles;
 
 // PCAP Analyzer namespaces
 using NetSuite;
@@ -22,64 +27,53 @@ namespace TechzazEdrWindowsAgent
         private static AppConfig _config = null!;
         private static CommandService _commandService = null!;
 
+        // Notification Event
+        public static Action<string, string>? OnNotification;
+
+        // Win32 Interop
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+        [DllImport("user32.dll")]
+        private static extern bool RemoveMenu(IntPtr hMenu, uint nPosition, uint nFlags);
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetConsoleWindow();
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool AllocConsole();
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool FreeConsole();
+
+        private const int SW_HIDE = 0;
+        private const int SW_SHOW = 5;
+        private const uint SC_CLOSE = 0xF060;
+        private const uint MF_BYCOMMAND = 0x00000000;
+        private static bool _isConsoleVisible = false;
+        private static IntPtr _consoleHandle = IntPtr.Zero;
+
         static async Task Main(string[] args)
         {
-            Console.Title = "TechzazEdr Windows Agent";
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            // Allocate console at startup to start capturing logs immediately
+            ShowConsole();
+            HideConsole();
 
             // Initialize configuration and command sync
             SetupConfig();
             InitializeCommandSync();
-            // Baseline generation removed from startup. It will be created on first reproducibility test if missing.
 
-            while (true)
-            {
-                Console.WriteLine("\n========================================");
-                Console.WriteLine("       TECHZAZEDR WINDOWS AGENT        ");
-                Console.WriteLine("========================================");
-                Console.WriteLine("1. Integrated Analysis (System Scan + PCAP File)");
-                Console.WriteLine("2. Live Security Analyzer (System Scan + Live Capture)");
-                Console.WriteLine("3. Exit");
-                Console.Write("\nSelect an option (1-3): ");
+            // Notify user of startup
+            OnNotification?.Invoke("Agent Active", "TechzazEDR is monitoring from the system tray.");
 
-                string? choice = Console.ReadLine();
-
-                if (choice == "1")
-                {
-                    await RunPcapAnalysis();
-                }
-                else if (choice == "2")
-                {
-                    await RunBothAtOnce();
-                }
-                else if (choice == "3")
-                {
-                    break;
-                }
-
-                // Show consolidated alert dispatch summary after ANY scan option that initialized the manager
-                if (_alertManager != null)
-                {
-                    var (success, failure) = await _alertManager.WaitForDispatchesAsync();
-                    if (success > 0 || failure > 0)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [✓] SYNC: Successfully dispatched {success} alerts to dashboard{(failure > 0 ? $" ({failure} failed)" : "")}.");
-                        Console.ResetColor();
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Invalid option.");
-                }
-            }
-
-            Console.WriteLine("\nSession Complete. Press any key to exit.");
-            Console.ReadKey();
+            // Run the tray application loop
+            Application.Run(new TrayIconContext());
         }
 
         // --- Process & File Analyser Integration ---
 
-        static async Task<bool> RunProcessAndFileScan(bool silent = false, string? cmdId = null)
+        public static async Task<bool> RunProcessAndFileScan(bool silent = false, string? cmdId = null)
         {
             SetupConfig();
             SetupEngine(silent);
@@ -204,6 +198,63 @@ namespace TechzazEdrWindowsAgent
             File.WriteAllText(path, JsonSerializer.Serialize(config, options));
         }
 
+        public static void ToggleConsole()
+        {
+            if (_isConsoleVisible)
+            {
+                HideConsole();
+            }
+            else
+            {
+                ShowConsole();
+            }
+        }
+
+        public static void ShowConsole()
+        {
+            if (_consoleHandle == IntPtr.Zero)
+            {
+                AllocConsole();
+                _consoleHandle = GetConsoleWindow();
+
+                // Disable console close button to prevent accidental app exit
+                IntPtr hMenu = GetSystemMenu(_consoleHandle, false);
+                if (hMenu != IntPtr.Zero)
+                {
+                    RemoveMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
+                }
+                
+                // Redirect standard output to the new console
+                var outStream = Console.OpenStandardOutput();
+                var writer = new StreamWriter(outStream, Console.OutputEncoding) { AutoFlush = true };
+                Console.SetOut(writer);
+                
+                var errStream = Console.OpenStandardError();
+                var errWriter = new StreamWriter(errStream, Console.OutputEncoding) { AutoFlush = true };
+                Console.SetError(errWriter);
+            }
+            
+            if (_consoleHandle != IntPtr.Zero)
+            {
+                ShowWindow(_consoleHandle, SW_SHOW);
+                _isConsoleVisible = true;
+            }
+        }
+
+        public static void HideConsole()
+        {
+            if (_consoleHandle == IntPtr.Zero)
+                _consoleHandle = GetConsoleWindow();
+
+            if (_consoleHandle != IntPtr.Zero)
+            {
+                ShowWindow(_consoleHandle, SW_HIDE);
+            }
+            _isConsoleVisible = false;
+        }
+
+        public static bool IsConsoleVisible() => _isConsoleVisible;
+
         static void AddExpectation(Dictionary<string, List<string>> dict, string process, string path)
         {
             if (!dict.ContainsKey(process)) dict[process] = new List<string>();
@@ -245,7 +296,7 @@ namespace TechzazEdrWindowsAgent
             return await IsCancelled(cmdId);
         }
 
-        static async Task RunPcapAnalysis()
+        public static async Task RunPcapAnalysis()
         {
             string pcapDir = GetPcapDir();
             
@@ -299,7 +350,7 @@ namespace TechzazEdrWindowsAgent
             return pcapDir;
         }
 
-        static async Task RunBothAtOnce(string? cmdId = null)
+        public static async Task RunBothAtOnce(string? cmdId = null)
         {
             Console.WriteLine($"[{DateTime.Now.ToString("HH:mm:ss")}] [*] INITIALIZING: Simultaneous Live Capture & System Scan...");
             
@@ -519,6 +570,10 @@ namespace TechzazEdrWindowsAgent
                 (cmdId, command, parameters) => ExecuteRemoteCommand(cmdId, command, parameters)
             );
             _commandService.Start();
+            _commandService.OnCommandReceived += (cmd) => 
+            {
+                OnNotification?.Invoke("Remote Command Received", $"Executing command: {cmd}");
+            };
         }
 
         private static string ResolveBackendUrl()
