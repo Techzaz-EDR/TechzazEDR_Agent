@@ -37,6 +37,10 @@ namespace TechzazEdrWindowsAgent
         private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
         [DllImport("user32.dll")]
         private static extern bool RemoveMenu(IntPtr hMenu, uint nPosition, uint nFlags);
+        [DllImport("user32.dll")]
+        private static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
+        [DllImport("user32.dll")]
+        private static extern bool DeleteMenu(IntPtr hMenu, uint nPosition, uint nFlags);
         [DllImport("kernel32.dll")]
         private static extern IntPtr GetConsoleWindow();
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -48,6 +52,8 @@ namespace TechzazEdrWindowsAgent
         private const int SW_SHOW = 5;
         private const uint SC_CLOSE = 0xF060;
         private const uint MF_BYCOMMAND = 0x00000000;
+        private const uint MF_GRAYED = 0x00000001;
+        private const uint MF_DISABLED = 0x00000002;
         private static bool _isConsoleVisible = false;
         private static IntPtr _consoleHandle = IntPtr.Zero;
 
@@ -56,8 +62,7 @@ namespace TechzazEdrWindowsAgent
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Allocate console at startup to start capturing logs immediately
-            ShowConsole();
+            // Hide the console (silent startup)
             HideConsole();
 
             // Initialize configuration and command sync
@@ -65,7 +70,7 @@ namespace TechzazEdrWindowsAgent
             InitializeCommandSync();
 
             // Notify user of startup
-            OnNotification?.Invoke("Agent Active", "TechzazEDR is monitoring from the system tray.");
+            // OnNotification?.Invoke("Agent Active", "TechzazEDR is monitoring from the system tray.");
 
             // Run the tray application loop
             Application.Run(new TrayIconContext());
@@ -214,16 +219,10 @@ namespace TechzazEdrWindowsAgent
         {
             if (_consoleHandle == IntPtr.Zero)
             {
+                // Allocate on first request (not during silent startup)
                 AllocConsole();
                 _consoleHandle = GetConsoleWindow();
 
-                // Disable console close button to prevent accidental app exit
-                IntPtr hMenu = GetSystemMenu(_consoleHandle, false);
-                if (hMenu != IntPtr.Zero)
-                {
-                    RemoveMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
-                }
-                
                 // Redirect standard output to the new console
                 var outStream = Console.OpenStandardOutput();
                 var writer = new StreamWriter(outStream, Console.OutputEncoding) { AutoFlush = true };
@@ -236,6 +235,15 @@ namespace TechzazEdrWindowsAgent
             
             if (_consoleHandle != IntPtr.Zero)
             {
+                // Consistently ensure close button is disabled before showing
+                IntPtr hMenu = GetSystemMenu(_consoleHandle, false);
+                if (hMenu != IntPtr.Zero)
+                {
+                    DeleteMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
+                    RemoveMenu(hMenu, SC_CLOSE, MF_BYCOMMAND);
+                    EnableMenuItem(hMenu, SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
+                }
+
                 ShowWindow(_consoleHandle, SW_SHOW);
                 _isConsoleVisible = true;
             }

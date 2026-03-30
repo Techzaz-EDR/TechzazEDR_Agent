@@ -26,7 +26,7 @@ namespace TechzazEdrWindowsAgent
             // Initialize Notify Icon
             _notifyIcon = new NotifyIcon()
             {
-                Icon = new Icon("icon.ico"),
+                Icon = new Icon(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "icon.ico")),
                 ContextMenuStrip = _contextMenu,
                 Visible = true,
                 Text = "TechzazEDR Agent"
